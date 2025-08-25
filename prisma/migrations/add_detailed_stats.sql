@@ -1,0 +1,15 @@
+-- Add detailed category count columns to grail_progress table
+ALTER TABLE grail_progress ADD COLUMN armor_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN armor_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN weapons_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN weapons_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN other_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN other_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN sets_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN sets_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_armor_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_armor_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_weapons_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_weapons_exists INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_other_owned INTEGER DEFAULT 0;
+ALTER TABLE grail_progress ADD COLUMN eth_other_exists INTEGER DEFAULT 0;

@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  displayName   String?
+  password      String   // hashed password
+  emailVerified DateTime?
+  emailVerificationToken String? @unique
+  passwordResetToken String? @unique
+  passwordResetExpiry DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSyncAt    DateTime?
+  isPublic      Boolean  @default(true)
+  
+  // API keys for desktop app integration
+  apiKeys       ApiKey[]
+  
+  // Grail progress
+  grailProgress GrailProgress?
+  
+  // Achievements
+  achievements  UserAchievement[]
+  
+  // Statistics
+  statistics    UserStatistics?
+  
+  @@map("users")
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key       String   @unique
+  name      String   // User-friendly name for the key
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  
+  @@map("api_keys")
+}
+
+model GrailProgress {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Grail configuration
+  gameMode      String   @default("Both") // Both, Softcore, Hardcore, Manual
+  grailType     String   @default("Both") // Both, Normal, Ethereal, Each
+  includeRunes  Boolean  @default(true)
+  includeRunewords Boolean @default(true)
+  
+  // Item data (JSON storage for flexibility)
+  items         Json     @default("{}")  // Normal items
+  ethItems      Json     @default("{}")  // Ethereal items
+  runes         Json     @default("{}")  // Runes found
+  runewords     Json     @default("{}")  // Runewords created
+  
+  // Progress statistics
+  totalItems    Int      @default(0)
+  totalEthItems Int      @default(0)
+  totalRunes    Int      @default(0)
+  totalRunewords Int     @default(0)
+  
+  // Detailed category counts
+  armorOwned    Int      @default(0)
+  armorExists   Int      @default(0)
+  weaponsOwned  Int      @default(0)
+  weaponsExists Int      @default(0)
+  otherOwned    Int      @default(0)
+  otherExists   Int      @default(0)
+  setsOwned     Int      @default(0)
+  setsExists    Int      @default(0)
+  ethArmorOwned    Int   @default(0)
+  ethArmorExists   Int   @default(0)
+  ethWeaponsOwned  Int   @default(0)
+  ethWeaponsExists Int   @default(0)
+  ethOtherOwned    Int   @default(0)
+  ethOtherExists   Int   @default(0)
+  
+  // Completion percentages
+  normalCompletion    Float @default(0)
+  etherealCompletion  Float @default(0)
+  runeCompletion      Float @default(0)
+  runewordCompletion  Float @default(0)
+  overallCompletion   Float @default(0)
+  
+  updatedAt     DateTime @updatedAt
+  
+  @@map("grail_progress")
+}
+
+model Achievement {
+  id            String   @id @default(cuid())
+  key           String   @unique  // "first_unique", "all_sets", "grail_complete", etc.
+  name          String
+  description   String
+  icon          String?
+  category      String   // "milestone", "completion", "speed", "special"
+  rarity        String   @default("common") // common, rare, epic, legendary
+  points        Int      @default(0)
+  
+  // Achievement conditions (JSON for flexibility)
+  conditions    Json
+  
+  // Users who have this achievement
+  userAchievements UserAchievement[]
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  unlockedAt    DateTime @default(now())
+  progress      Float    @default(0) // For progressive achievements
+  
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model UserStatistics {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Time tracking
+  firstItemAt     DateTime?
+  lastItemAt      DateTime?
+  grailStartedAt  DateTime?
+  grailCompletedAt DateTime?
+  
+  // Item counts by day (JSON array for charts)
+  dailyProgress   Json     @default("[]")
+  
+  // Speed statistics
+  itemsPerDay     Float    @default(0)
+  itemsPerWeek    Float    @default(0)
+  bestDay         DateTime?
+  bestDayCount    Int      @default(0)
+  
+  // Streak tracking
+  currentStreak   Int      @default(0)
+  longestStreak   Int      @default(0)
+  
+  // Favorite finds
+  favoriteItem    String?
+  luckiestFind    String?
+  
+  updatedAt       DateTime @updatedAt
+  
+  @@map("user_statistics")
+}
+
+model ApiLog {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String
+  method    String
+  success   Boolean
+  timestamp DateTime @default(now())
+  
+  @@map("api_logs")
+}

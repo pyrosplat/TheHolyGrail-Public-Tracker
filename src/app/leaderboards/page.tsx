@@ -283,9 +283,9 @@ export default function LeaderboardsPage() {
                     }}
                   >
                     <MenuItem value="all">All Types</MenuItem>
+                    <MenuItem value="both">Both (Normal and Ethereal)</MenuItem>
                     <MenuItem value="normal">Normal Only</MenuItem>
                     <MenuItem value="ethereal">Ethereal Only</MenuItem>
-                    <MenuItem value="both">Both (Combined)</MenuItem>
                     <MenuItem value="each">Each Separately</MenuItem>
                   </Select>
                 </FormControl>

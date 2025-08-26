@@ -28,6 +28,7 @@ import {
 } from '@mui/icons-material'
 import Link from 'next/link'
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface PlayerData {
   id: string
@@ -76,6 +77,7 @@ interface PlayerData {
 
 export default function PlayerProfilePage() {
   const params = useParams()
+  const { mode } = useTheme()
   const username = params.username as string
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -182,9 +184,9 @@ export default function PlayerProfilePage() {
                     value={grailProgress.overallCompletion}
                     text={`${grailProgress.overallCompletion.toFixed(1)}%`}
                     styles={buildStyles({
-                      pathColor: '#CC5F43',
-                      textColor: '#ffffff',
-                      trailColor: '#333',
+                      pathColor: mode === 'dark' ? '#ff9800' : '#000000',
+                      textColor: mode === 'dark' ? '#ffffff' : '#000000',
+                      trailColor: mode === 'dark' ? '#333' : '#e0e0e0',
                       textSize: '16px',
                     })}
                   />
@@ -207,7 +209,7 @@ export default function PlayerProfilePage() {
                           height: 8, 
                           borderRadius: 4,
                           '& .MuiLinearProgress-bar': {
-                            backgroundColor: '#CC5F43'
+                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                           }
                         }}
                       />
@@ -235,7 +237,7 @@ export default function PlayerProfilePage() {
                           height: 8, 
                           borderRadius: 4,
                           '& .MuiLinearProgress-bar': {
-                            backgroundColor: '#CC5F43'
+                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                           }
                         }}
                       />
@@ -264,7 +266,7 @@ export default function PlayerProfilePage() {
                             height: 8, 
                             borderRadius: 4,
                             '& .MuiLinearProgress-bar': {
-                              backgroundColor: '#CC5F43'
+                              backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                             }
                           }}
                         />
@@ -294,7 +296,7 @@ export default function PlayerProfilePage() {
                             height: 8, 
                             borderRadius: 4,
                             '& .MuiLinearProgress-bar': {
-                              backgroundColor: '#CC5F43'
+                              backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                             }
                           }}
                         />

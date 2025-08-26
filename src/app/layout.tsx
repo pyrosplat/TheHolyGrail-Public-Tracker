@@ -21,13 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className} suppressHydrationWarning>
-        <SessionProvider>
-          <ThemeProvider>
+        <ThemeProvider>
+          <SessionProvider>
             <AppLayout>
               {children}
             </AppLayout>
-          </ThemeProvider>
-        </SessionProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

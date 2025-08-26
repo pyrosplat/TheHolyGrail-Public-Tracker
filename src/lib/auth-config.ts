@@ -47,6 +47,11 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: '/auth/signin'
   },
+  events: {
+    async signOut() {
+      // Ensure we redirect to the correct port
+    }
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

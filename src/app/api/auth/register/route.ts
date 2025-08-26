@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         grailProgress: {
           create: {
-            gameMode: 'Both',
-            grailType: 'Both',
+            gameMode: 'Softcore', 
+            grailType: 'Normal',
             includeRunes: true,
             includeRunewords: true,
           },

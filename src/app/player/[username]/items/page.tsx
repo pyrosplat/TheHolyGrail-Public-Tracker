@@ -13,6 +13,7 @@ import {
   Alert,
   LinearProgress,
 } from '@mui/material'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface PlayerData {
   id: string
@@ -47,6 +48,7 @@ interface ItemsData {
 
 export default function PlayerItemsPage() {
   const params = useParams()
+  const { mode } = useTheme()
   const username = params.username as string
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [itemsData, setItemsData] = useState<ItemsData | null>(null)
@@ -195,7 +197,13 @@ export default function PlayerItemsPage() {
                   />
                 </Box>
                 
-                <Typography variant="h4" color="primary" gutterBottom>
+                <Typography 
+                  variant="h4" 
+                  gutterBottom
+                  sx={{ 
+                    color: (theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
+                  }}
+                >
                   {category.owned}/{category.exists}
                 </Typography>
                 
@@ -211,7 +219,7 @@ export default function PlayerItemsPage() {
                           backgroundColor: 'grey.200',
                           '& .MuiLinearProgress-bar': {
                             borderRadius: 4,
-                            backgroundColor: '#CC5F43'
+                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                           }
                         }}
                       />
@@ -243,7 +251,12 @@ export default function PlayerItemsPage() {
           </Typography>
           
           <Box display="flex" flexDirection="column" alignItems="center" gap={2} mb={2}>
-            <Typography variant="h3" color="primary">
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                color: (theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
+              }}
+            >
               {itemsData.totalOwned}/{itemsData.totalExists}
             </Typography>
             <Chip 
@@ -252,9 +265,9 @@ export default function PlayerItemsPage() {
                 backgroundColor: '#CC5F43',
                 color: 'white',
                 fontFamily: '"Exocet", "serif"',
-                fontSize: '1.1rem'
+                fontSize: '1.1rem',
+                height: '36px'
               }}
-              size="large"
             />
           </Box>
           
@@ -268,7 +281,7 @@ export default function PlayerItemsPage() {
                 backgroundColor: 'grey.200',
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 6,
-                  backgroundColor: '#CC5F43'
+                  backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
                 }
               }}
             />

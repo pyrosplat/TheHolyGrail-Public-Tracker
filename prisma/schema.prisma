@@ -25,6 +25,17 @@ model User {
   lastSyncAt    DateTime?
   isPublic      Boolean  @default(true)
   
+  // Profile customization
+  avatarUrl     String?  // URL to uploaded avatar or default avatar
+  avatarType    String   @default("default") // "default", "custom", "upload"
+  bio           String?
+  country       String?
+  state         String?
+  age           Int?
+  gender        String?
+  hobbies       String?
+  diabloExperience String? // How long they've played Diablo II
+  
   // API keys for desktop app integration
   apiKeys       ApiKey[]
   
@@ -58,8 +69,8 @@ model GrailProgress {
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   // Grail configuration
-  gameMode      String   @default("Both") // Both, Softcore, Hardcore, Manual
-  grailType     String   @default("Both") // Both, Normal, Ethereal, Each
+  gameMode      String   @default("Softcore") // Softcore, Hardcore, Manual
+  grailType     String   @default("Normal") // Normal, Ethereal, Each
   includeRunes  Boolean  @default(true)
   includeRunewords Boolean @default(true)
   

@@ -19,6 +19,7 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material'
+import { useTheme } from '@/contexts/ThemeContext'
 import {
   EmojiEvents as TrophyIcon,
   Timeline as TimelineIcon,
@@ -27,97 +28,18 @@ import {
   CheckCircle as CheckIcon,
 } from '@mui/icons-material'
 
-// Mock achievements data - in real app this would come from the API
-const mockAchievements = [
-  {
-    id: '1',
-    key: 'first_unique',
-    name: 'First Blood',
-    description: 'Find your first unique item',
-    icon: '🏆',
-    category: 'milestone',
-    rarity: 'common',
-    points: 10,
-    unlockedBy: 1245,
-  },
-  {
-    id: '2',
-    key: 'grail_25',
-    name: 'Quarter Master',
-    description: 'Reach 25% Holy Grail completion',
-    icon: '🌟',
-    category: 'milestone',
-    rarity: 'common',
-    points: 50,
-    unlockedBy: 892,
-  },
-  {
-    id: '3',
-    key: 'grail_50',
-    name: 'Halfway There',
-    description: 'Reach 50% Holy Grail completion',
-    icon: '⭐',
-    category: 'milestone',
-    rarity: 'rare',
-    points: 100,
-    unlockedBy: 456,
-  },
-  {
-    id: '4',
-    key: 'grail_complete',
-    name: 'Holy Grail Master',
-    description: 'Complete the Holy Grail - find every item!',
-    icon: '👑',
-    category: 'completion',
-    rarity: 'legendary',
-    points: 2000,
-    unlockedBy: 42,
-  },
-  {
-    id: '5',
-    key: 'all_runes',
-    name: 'Rune Master',
-    description: 'Find all 33 runes',
-    icon: '🗿',
-    category: 'completion',
-    rarity: 'epic',
-    points: 500,
-    unlockedBy: 189,
-  },
-  {
-    id: '6',
-    key: 'speed_demon',
-    name: 'Speed Demon',
-    description: 'Find 10 items in a single day',
-    icon: '⚡',
-    category: 'speed',
-    rarity: 'rare',
-    points: 100,
-    unlockedBy: 334,
-  },
-  {
-    id: '7',
-    key: 'dedication',
-    name: 'Dedication',
-    description: 'Find items for 100 consecutive days',
-    icon: '🔥',
-    category: 'speed',
-    rarity: 'legendary',
-    points: 1000,
-    unlockedBy: 23,
-  },
-  {
-    id: '8',
-    key: 'rainbow_facets',
-    name: 'Rainbow Collection',
-    description: 'Find all 8 Rainbow Facet variants',
-    icon: '🌈',
-    category: 'special',
-    rarity: 'legendary',
-    points: 750,
-    unlockedBy: 67,
-  },
-]
+interface Achievement {
+  id: string
+  key: string
+  name: string
+  description: string
+  icon: string
+  category: string
+  rarity: string
+  points: number
+  unlockedBy: number
+  unlockedPercentage: number
+}
 
 const categories = [
   { key: 'all', label: 'All Achievements', icon: <TrophyIcon /> },
@@ -135,21 +57,54 @@ const rarityColors = {
 }
 
 export default function AchievementsPage() {
+  const { mode } = useTheme()
   const [activeTab, setActiveTab] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [achievements, setAchievements] = useState<Achievement[]>([])
+  const [error, setError] = useState<string | null>(null)
   
   const currentCategory = categories[activeTab]?.key || 'all'
 
-  const filteredAchievements = mockAchievements.filter(achievement => 
+  const filteredAchievements = achievements.filter(achievement => 
     currentCategory === 'all' || achievement.category === currentCategory
   )
+
+  useEffect(() => {
+    loadAchievements()
+  }, [])
+
+  const loadAchievements = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch('/api/achievements')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setAchievements(data.data)
+        } else {
+          setError(data.error)
+        }
+      } else {
+        setError('Failed to load achievements')
+      }
+      
+    } catch (err) {
+      setError('Network error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 
   const getRarityStats = () => {
-    const stats = mockAchievements.reduce((acc, achievement) => {
+    if (achievements.length === 0) return []
+    
+    const stats = achievements.reduce((acc, achievement) => {
       acc[achievement.rarity] = (acc[achievement.rarity] || 0) + 1
       return acc
     }, {} as Record<string, number>)
@@ -161,8 +116,8 @@ export default function AchievementsPage() {
     }))
   }
 
-  const totalPoints = mockAchievements.reduce((sum, achievement) => sum + achievement.points, 0)
-  const totalUnlocks = mockAchievements.reduce((sum, achievement) => sum + achievement.unlockedBy, 0)
+  const totalPoints = achievements.reduce((sum, achievement) => sum + achievement.points, 0)
+  const totalUnlocks = achievements.reduce((sum, achievement) => sum + achievement.unlockedBy, 0)
 
   return (
     <Box>
@@ -173,73 +128,75 @@ export default function AchievementsPage() {
         Unlock achievements by reaching milestones in your Holy Grail journey
       </Typography>
 
-      {/* Stats Overview */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="primary" gutterBottom>
-                {mockAchievements.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Achievements
-              </Typography>
-            </CardContent>
-          </Card>
+      {/* Stats Overview - Only show when we have achievements */}
+      {achievements.length > 0 && (
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="primary" gutterBottom>
+                  {achievements.length}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Achievements
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="warning.main" gutterBottom>
+                  {totalPoints.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Points Available
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent sx={{ textAlign: 'center' }}>
+                <Typography variant="h4" color="success.main" gutterBottom>
+                  {totalUnlocks.toLocaleString()}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Unlocks
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} md={3}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle2" gutterBottom textAlign="center">
+                  Rarity Distribution
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {getRarityStats().map((stat) => (
+                    <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Chip
+                        size="small"
+                        label={stat.rarity}
+                        sx={{ 
+                          backgroundColor: stat.color, 
+                          color: stat.rarity === 'Legendary' ? 'black' : 'white',
+                          minWidth: '70px'
+                        }}
+                      />
+                      <Typography variant="body2">{stat.count}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="warning.main" gutterBottom>
-                {totalPoints.toLocaleString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Points Available
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Typography variant="h4" color="success.main" gutterBottom>
-                {totalUnlocks.toLocaleString()}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Unlocks
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle2" gutterBottom textAlign="center">
-                Rarity Distribution
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {getRarityStats().map((stat) => (
-                  <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Chip
-                      size="small"
-                      label={stat.rarity}
-                      sx={{ 
-                        backgroundColor: stat.color, 
-                        color: stat.rarity === 'Legendary' ? 'black' : 'white',
-                        minWidth: '70px'
-                      }}
-                    />
-                    <Typography variant="body2">{stat.count}</Typography>
-                  </Box>
-                ))}
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      )}
 
       <Card>
         <CardContent>
@@ -341,18 +298,18 @@ export default function AchievementsPage() {
                       <Box mt={2}>
                         <LinearProgress
                           variant="determinate"
-                          value={(achievement.unlockedBy / 1500) * 100} // Assuming 1500 total players
+                          value={achievement.unlockedPercentage}
                           sx={{ 
                             height: 4, 
                             borderRadius: 2,
-                            backgroundColor: 'rgba(255,255,255,0.1)',
+                            backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                             '& .MuiLinearProgress-bar': {
                               backgroundColor: rarityColors[achievement.rarity as keyof typeof rarityColors],
                             }
                           }}
                         />
                         <Typography variant="caption" color="text.secondary" mt={0.5} display="block">
-                          {((achievement.unlockedBy / 1500) * 100).toFixed(1)}% of players
+                          {achievement.unlockedPercentage.toFixed(1)}% of players ({achievement.unlockedBy} users)
                         </Typography>
                       </Box>
                     </CardContent>
@@ -363,7 +320,22 @@ export default function AchievementsPage() {
           )}
 
           {/* Empty State */}
-          {!loading && filteredAchievements.length === 0 && (
+          {!loading && achievements.length === 0 && (
+            <Box textAlign="center" py={8}>
+              <TrophyIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+              <Typography variant="h4" color="text.secondary" gutterBottom>
+                Achievements Coming Soon!
+              </Typography>
+              <Typography color="text.secondary" mb={4}>
+                The achievement system is being built. Soon you'll be able to unlock achievements for completing milestones in your Holy Grail journey.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Achievement categories will include milestones, completion challenges, speed runs, and special accomplishments.
+              </Typography>
+            </Box>
+          )}
+          
+          {!loading && achievements.length > 0 && filteredAchievements.length === 0 && (
             <Box textAlign="center" py={8}>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 No achievements in this category

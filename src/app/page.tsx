@@ -24,40 +24,69 @@ import {
   EmojiEvents as TrophyIcon,
   Group as GroupIcon,
   Timeline as TimelineIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material'
 import Link from 'next/link'
 
-// Mock data for development
-const mockLeaderboard = [
-  { id: '1', username: 'GrailMaster99', completion: 98.5, totalItems: 492, rank: 1 },
-  { id: '2', username: 'DiabloHunter', completion: 87.2, totalItems: 436, rank: 2 },
-  { id: '3', username: 'LootSeeker', completion: 76.8, totalItems: 384, rank: 3 },
-  { id: '4', username: 'RuneCollector', completion: 65.4, totalItems: 327, rank: 4 },
-  { id: '5', username: 'SetComplete', completion: 58.9, totalItems: 294, rank: 5 },
-]
+interface LeaderboardEntry {
+  id: string
+  username: string
+  displayName?: string
+  rank: number
+  progress: {
+    overall: number
+    totalItems: number
+  }
+}
 
-const mockRecentAchievements = [
-  { id: '1', username: 'GrailMaster99', achievement: 'Grail Completed!', rarity: 'legendary', timestamp: '2 hours ago' },
-  { id: '2', username: 'DiabloHunter', achievement: 'All Sets Found', rarity: 'epic', timestamp: '5 hours ago' },
-  { id: '3', username: 'LootSeeker', achievement: 'Rune Master', rarity: 'rare', timestamp: '8 hours ago' },
-  { id: '4', username: 'RuneCollector', achievement: 'First Unique', rarity: 'common', timestamp: '1 day ago' },
-]
-
-const mockStats = {
-  totalPlayers: 1337,
-  activeToday: 89,
-  grailsCompleted: 42,
-  itemsFound: 15847,
+interface PageStats {
+  totalUsers: number
+  activeUsers: number
+  completedGrails: number
+  totalItems: number
 }
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mounted, setMounted] = useState(false)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [stats, setStats] = useState<PageStats | null>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
+    loadPageData()
   }, [])
+
+  const loadPageData = async () => {
+    try {
+      setLoading(true)
+      
+      // Load top 5 players from leaderboards
+      const leaderboardResponse = await fetch('/api/leaderboards?limit=5&offset=0&category=overall')
+      if (leaderboardResponse.ok) {
+        const leaderboardData = await leaderboardResponse.json()
+        if (leaderboardData.success) {
+          setLeaderboard(leaderboardData.data.leaderboard || [])
+        }
+      }
+
+      // Load basic stats - we'll implement this API endpoint next
+      // const statsResponse = await fetch('/api/stats')
+      // if (statsResponse.ok) {
+      //   const statsData = await statsResponse.json()
+      //   if (statsData.success) {
+      //     setStats(statsData.data)
+      //   }
+      // }
+      
+    } catch (error) {
+      console.error('Failed to load page data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
@@ -107,65 +136,67 @@ export default function HomePage() {
       </Box>
 
       <Grid container spacing={4}>
-        {/* Stats Overview */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h4" gutterBottom>
-                Community Statistics
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <GroupIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="h4" color="primary">
-                      {mockStats.totalPlayers.toLocaleString()}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Total Players
-                    </Typography>
-                  </Box>
+        {/* Stats Overview - Only show when we have stats data */}
+        {stats && (
+          <Grid item xs={12} md={8}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" gutterBottom>
+                  Community Statistics
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={6} sm={3}>
+                    <Box textAlign="center">
+                      <GroupIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
+                      <Typography variant="h4" color="primary">
+                        {stats.totalUsers.toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Players
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box textAlign="center">
+                      <TimelineIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
+                      <Typography variant="h4" color="success.main">
+                        {stats.activeUsers}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Active Users
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box textAlign="center">
+                      <TrophyIcon sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
+                      <Typography variant="h4" color="warning.main">
+                        {stats.completedGrails}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Grails Completed
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6} sm={3}>
+                    <Box textAlign="center">
+                      <TrendingUpIcon sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
+                      <Typography variant="h4" color="info.main">
+                        {stats.totalItems.toLocaleString()}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Total Items
+                      </Typography>
+                    </Box>
+                  </Grid>
                 </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <TimelineIcon sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-                    <Typography variant="h4" color="success.main">
-                      {mockStats.activeToday}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Active Today
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <TrophyIcon sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
-                    <Typography variant="h4" color="warning.main">
-                      {mockStats.grailsCompleted}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Grails Completed
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6} sm={3}>
-                  <Box textAlign="center">
-                    <TrendingUpIcon sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-                    <Typography variant="h4" color="info.main">
-                      {mockStats.itemsFound.toLocaleString()}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Items Found
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
         {/* Quick Actions */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={stats ? 4 : 6}>
           <Card>
             <CardContent>
               <Typography variant="h5" gutterBottom>
@@ -212,85 +243,57 @@ export default function HomePage() {
                 Top Players
               </Typography>
               <List>
-                {mockLeaderboard.slice(0, 5).map((player) => (
-                  <ListItem
-                    key={player.id}
-                    component={Link}
-                    href={`/player/${player.username}`}
-                    sx={{
-                      borderRadius: 1,
-                      mb: 1,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
-                        #{player.rank}
-                      </Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={player.username}
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {player.totalItems} items • {player.completion}% complete
-                          </Typography>
-                          <LinearProgress
-                            variant="determinate"
-                            value={player.completion}
-                            sx={{ mt: 1, height: 6, borderRadius: 3 }}
-                          />
-                        </Box>
-                      }
-                    />
-                  </ListItem>
-                ))}
+                {leaderboard.length > 0 ? (
+                  leaderboard.map((player) => (
+                    <ListItem
+                      key={player.id}
+                      component={Link}
+                      href={`/player/${player.username}`}
+                      sx={{
+                        borderRadius: 1,
+                        mb: 1,
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                        },
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                          #{player.rank}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={player.username}
+                        secondary={
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {player.progress.totalItems} items • {player.progress.overall.toFixed(1)}% complete
+                            </Typography>
+                            <LinearProgress
+                              variant="determinate"
+                              value={Math.min(player.progress.overall, 100)}
+                              sx={{ mt: 1, height: 6, borderRadius: 3 }}
+                            />
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  ))
+                ) : (
+                  <Box textAlign="center" py={4}>
+                    <Typography variant="h6" color="text.secondary" gutterBottom>
+                      No players yet
+                    </Typography>
+                    <Typography color="text.secondary">
+                      Be the first to start tracking your Holy Grail progress!
+                    </Typography>
+                  </Box>
+                )}
               </List>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Recent Achievements */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                Recent Achievements
-              </Typography>
-              <List>
-                {mockRecentAchievements.map((achievement) => (
-                  <ListItem
-                    key={achievement.id}
-                    sx={{
-                      borderRadius: 1,
-                      mb: 1,
-                      border: '1px solid',
-                      borderColor: 'divider',
-                    }}
-                  >
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="body1" component="span">
-                            {achievement.username}
-                          </Typography>
-                          <Chip
-                            size="small"
-                            label={achievement.achievement}
-                            className={`achievement-${achievement.rarity}`}
-                          />
-                        </Box>
-                      }
-                      secondary={achievement.timestamp}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
       </Grid>
 
       {/* Getting Started */}
@@ -305,9 +308,19 @@ export default function HomePage() {
                 <Typography variant="h6" gutterBottom>
                   1. Download the Desktop App
                 </Typography>
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" gutterBottom>
                   Get the Holy Grail desktop client to automatically track your item progress.
                 </Typography>
+                <Button
+                  variant="contained"
+                  startIcon={<DownloadIcon />}
+                  href="https://github.com/pyrosplat/TheHolyGrail/releases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{ mt: 2 }}
+                >
+                  Download Client
+                </Button>
               </Box>
             </Grid>
             <Grid item xs={12} md={4}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
@@ -18,11 +18,41 @@ import {
   TextField,
   Divider,
   CircularProgress,
+  Avatar,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormControlLabel,
+  Switch,
+  IconButton,
 } from '@mui/material'
 import {
   Delete as DeleteIcon,
   Warning as WarningIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material'
+
+interface UserProfile {
+  id: string
+  username: string
+  displayName?: string
+  email: string
+  bio?: string
+  country?: string
+  state?: string
+  avatarUrl?: string
+  avatarType: string
+  diabloExperience?: string
+  age?: number
+  gender?: string
+  hobbies?: string
+  isPublic: boolean
+}
 
 export default function SettingsPage() {
   const { data: session } = useSession()
@@ -30,6 +60,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
+  // Profile state
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profileForm, setProfileForm] = useState<Partial<UserProfile>>({})
+  const [profileLoading, setProfileLoading] = useState(true)
   
   // Delete account confirmation dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -41,9 +77,99 @@ export default function SettingsPage() {
   const [clearProgressConfirmation, setClearProgressConfirmation] = useState('')
   const [clearProgressLoading, setClearProgressLoading] = useState(false)
 
+  useEffect(() => {
+    if (session?.user?.id) {
+      loadProfile()
+    }
+  }, [session])
+
   if (!session) {
     router.push('/auth/signin')
     return null
+  }
+
+  const loadProfile = async () => {
+    try {
+      setProfileLoading(true)
+      const response = await fetch('/api/user/profile')
+      const data = await response.json()
+      
+      if (data.success) {
+        setProfile(data.data)
+        setProfileForm(data.data)
+      } else {
+        setError('Failed to load profile')
+      }
+    } catch (error) {
+      console.error('Load profile error:', error)
+      setError('Failed to load profile')
+    } finally {
+      setProfileLoading(false)
+    }
+  }
+
+  const handleEditProfile = () => {
+    setEditingProfile(true)
+    setProfileForm({ ...profile })
+    setError('')
+    setSuccess('')
+  }
+
+  const handleCancelEdit = () => {
+    setEditingProfile(false)
+    setProfileForm({ ...profile })
+    setError('')
+  }
+
+  const handleSaveProfile = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      
+      // Extract Battle.net ID from hobbies if it exists
+      let battlenetId = ''
+      let cleanHobbies = profileForm.hobbies || ''
+      
+      if (cleanHobbies.startsWith('Battle.net: ')) {
+        battlenetId = cleanHobbies.replace('Battle.net: ', '')
+        cleanHobbies = ''
+      }
+      
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...profileForm,
+          hobbies: cleanHobbies,
+          battlenetId: battlenetId
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setProfile(data.data)
+        setProfileForm(data.data)
+        setEditingProfile(false)
+        setSuccess('Profile updated successfully!')
+      } else {
+        setError(data.error || 'Failed to update profile')
+      }
+    } catch (error) {
+      console.error('Save profile error:', error)
+      setError('An error occurred while updating your profile')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const extractBattlenetId = (hobbies?: string): string => {
+    if (hobbies?.startsWith('Battle.net: ')) {
+      return hobbies.replace('Battle.net: ', '')
+    }
+    return ''
   }
 
   const handleDeleteAccount = async () => {
@@ -164,9 +290,212 @@ export default function SettingsPage() {
               Username
             </Typography>
             <Typography variant="body1">
-              {session.user?.name}
+              {session.user?.username}
             </Typography>
           </Box>
+        </CardContent>
+      </Card>
+
+      {/* Profile & Bio Section */}
+      <Card sx={{ mb: 4 }}>
+        <CardContent>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Typography variant="h5">
+              Profile & Bio
+            </Typography>
+            {!editingProfile ? (
+              <Button
+                variant="outlined"
+                startIcon={<EditIcon />}
+                onClick={handleEditProfile}
+                disabled={profileLoading}
+              >
+                Edit Profile
+              </Button>
+            ) : (
+              <Box display="flex" gap={1}>
+                <Button
+                  variant="outlined"
+                  startIcon={<CancelIcon />}
+                  onClick={handleCancelEdit}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={loading ? <CircularProgress size={20} /> : <SaveIcon />}
+                  onClick={handleSaveProfile}
+                  disabled={loading}
+                >
+                  Save Changes
+                </Button>
+              </Box>
+            )}
+          </Box>
+
+          {profileLoading ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {/* Profile Picture Section */}
+              <Box mb={4}>
+                <Typography variant="h6" gutterBottom>
+                  Profile Picture
+                </Typography>
+                <Box display="flex" alignItems="center" gap={3}>
+                  <Avatar
+                    src={profile?.avatarUrl}
+                    sx={{ width: 80, height: 80 }}
+                  >
+                    <PersonIcon sx={{ fontSize: 40 }} />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      Profile picture coming soon! For now, you'll see a default avatar.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Future updates will allow custom image uploads.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              <Grid container spacing={3}>
+                {/* Display Name */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Display Name"
+                    value={editingProfile ? (profileForm.displayName || '') : (profile?.displayName || '')}
+                    onChange={(e) => editingProfile && setProfileForm({ ...profileForm, displayName: e.target.value })}
+                    disabled={!editingProfile}
+                    helperText="How your name appears to other users"
+                  />
+                </Grid>
+
+                {/* Country */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Country"
+                    value={editingProfile ? (profileForm.country || '') : (profile?.country || '')}
+                    onChange={(e) => editingProfile && setProfileForm({ ...profileForm, country: e.target.value })}
+                    disabled={!editingProfile}
+                  />
+                </Grid>
+
+                {/* State */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="State/Province"
+                    value={editingProfile ? (profileForm.state || '') : (profile?.state || '')}
+                    onChange={(e) => editingProfile && setProfileForm({ ...profileForm, state: e.target.value })}
+                    disabled={!editingProfile}
+                  />
+                </Grid>
+
+                {/* Battle.net ID */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Battle.net ID"
+                    value={editingProfile ? extractBattlenetId(profileForm.hobbies) : extractBattlenetId(profile?.hobbies)}
+                    onChange={(e) => editingProfile && setProfileForm({ 
+                      ...profileForm, 
+                      hobbies: e.target.value ? `Battle.net: ${e.target.value}` : '' 
+                    })}
+                    disabled={!editingProfile}
+                    helperText="Your Battle.net account name"
+                  />
+                </Grid>
+
+                {/* Age */}
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Age"
+                    type="number"
+                    value={editingProfile ? (profileForm.age || '') : (profile?.age || '')}
+                    onChange={(e) => editingProfile && setProfileForm({ ...profileForm, age: parseInt(e.target.value) || undefined })}
+                    disabled={!editingProfile}
+                    inputProps={{ min: 13, max: 120 }}
+                  />
+                </Grid>
+
+                {/* Gender */}
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth disabled={!editingProfile}>
+                    <InputLabel>Gender</InputLabel>
+                    <Select
+                      value={editingProfile ? (profileForm.gender || '') : (profile?.gender || '')}
+                      onChange={(e) => editingProfile && setProfileForm({ ...profileForm, gender: e.target.value })}
+                      label="Gender"
+                    >
+                      <MenuItem value="">Prefer not to say</MenuItem>
+                      <MenuItem value="male">Male</MenuItem>
+                      <MenuItem value="female">Female</MenuItem>
+                      <MenuItem value="other">Other</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Diablo II Experience */}
+                <Grid item xs={12}>
+                  <FormControl fullWidth disabled={!editingProfile}>
+                    <InputLabel>How long have you been playing Diablo II?</InputLabel>
+                    <Select
+                      value={editingProfile ? (profileForm.diabloExperience || '') : (profile?.diabloExperience || '')}
+                      onChange={(e) => editingProfile && setProfileForm({ ...profileForm, diabloExperience: e.target.value })}
+                      label="How long have you been playing Diablo II?"
+                    >
+                      <MenuItem value="">Select experience</MenuItem>
+                      <MenuItem value="new">New to Diablo II (Less than 1 year)</MenuItem>
+                      <MenuItem value="casual">Casual player (1-3 years)</MenuItem>
+                      <MenuItem value="experienced">Experienced (3-10 years)</MenuItem>
+                      <MenuItem value="veteran">Veteran (10+ years)</MenuItem>
+                      <MenuItem value="original">Original D2 player (Since 2000)</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Bio */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Bio"
+                    multiline
+                    rows={4}
+                    value={editingProfile ? (profileForm.bio || '') : (profile?.bio || '')}
+                    onChange={(e) => editingProfile && setProfileForm({ ...profileForm, bio: e.target.value })}
+                    disabled={!editingProfile}
+                    helperText={`Tell others about yourself, your Diablo II journey, favorite builds, etc. (${(editingProfile ? (profileForm.bio?.length || 0) : (profile?.bio?.length || 0))}/500 characters)`}
+                    inputProps={{ maxLength: 500 }}
+                  />
+                </Grid>
+
+                {/* Public Profile Toggle */}
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={editingProfile ? (profileForm.isPublic ?? true) : (profile?.isPublic ?? true)}
+                        onChange={(e) => editingProfile && setProfileForm({ ...profileForm, isPublic: e.target.checked })}
+                        disabled={!editingProfile}
+                      />
+                    }
+                    label="Make my profile public"
+                  />
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    When enabled, other users can view your profile and grail progress. When disabled, your profile is private.
+                  </Typography>
+                </Grid>
+              </Grid>
+            </>
+          )}
         </CardContent>
       </Card>
 

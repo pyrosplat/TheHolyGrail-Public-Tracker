@@ -1,7 +1,8 @@
 'use client'
 
 import { AppBar, Toolbar, Typography, Container, Box, Button, Menu, MenuItem, Avatar, IconButton } from '@mui/material'
-import { AccountCircle } from '@mui/icons-material'
+import { AccountCircle, LightMode, DarkMode } from '@mui/icons-material'
+import { useTheme } from '@/contexts/ThemeContext'
 import { useSession, signOut } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
@@ -12,6 +13,7 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const { data: session, status } = useSession()
+  const { mode, toggleTheme } = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -23,7 +25,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/' })
+    await signOut({ callbackUrl: `${window.location.origin}/` })
     handleClose()
   }
 
@@ -31,7 +33,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <>
       <AppBar position="static" elevation={0}>
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontFamily: 'Exocet Heavy' }}>
+          <Typography 
+            variant="h4" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              fontFamily: 'Exocet Heavy',
+              fontSize: '1.8rem',
+              fontWeight: 700,
+              letterSpacing: '0.02em'
+            }}
+          >
             <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
               D2R Holy Grail Tracker
             </Link>
@@ -43,6 +55,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <Button color="inherit" component={Link} href="/achievements">
               Achievements
             </Button>
+            
+            {/* Theme Toggle */}
+            <IconButton
+              onClick={toggleTheme}
+              color="inherit"
+              aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+              sx={{ ml: 1 }}
+            >
+              {mode === 'dark' ? <LightMode /> : <DarkMode />}
+            </IconButton>
             
             {session ? (
               <>

@@ -22,17 +22,17 @@ export async function GET(request: NextRequest) {
       },
     }
 
-    // Add nested filtering conditions using proper Prisma syntax
-    let grailProgressFilters: any = {}
+    // Build additional filters for grailProgress relation using 'is' syntax
+    const grailProgressFilters: any = {}
 
-    // Filter by game mode
-    if (gameMode !== 'all') {
+    // Filter by game mode - treat 'Both' as 'all' (no filter)
+    if (gameMode !== 'all' && gameMode !== 'both') {
       grailProgressFilters.gameMode = gameMode === 'softcore' ? 'Softcore' : gameMode === 'hardcore' ? 'Hardcore' : gameMode
     }
 
     // Filter by grail type
     if (grailType !== 'all') {
-      grailProgressFilters.grailType = grailType === 'normal' ? 'Normal' : grailType === 'ethereal' ? 'Ethereal' : grailType === 'each' ? 'Each' : grailType === 'both' ? 'Both' : grailType
+      grailProgressFilters.grailType = grailType === 'normal' ? 'Normal' : grailType === 'ethereal' ? 'Ethereal' : grailType === 'each' ? 'Each' : grailType === 'both' ? 'both' : grailType
     }
 
     // Filter by rune/runeword inclusion
@@ -43,11 +43,10 @@ export async function GET(request: NextRequest) {
       grailProgressFilters.includeRunewords = true
     }
 
-    // Apply filters using proper Prisma nested filtering
+    // Apply additional filters if any exist using 'is' syntax for one-to-one relations
     if (Object.keys(grailProgressFilters).length > 0) {
       whereConditions.grailProgress = {
-        isNot: null,
-        ...grailProgressFilters
+        is: grailProgressFilters
       }
     }
 
@@ -90,8 +89,8 @@ export async function GET(request: NextRequest) {
       username: user.username,
       displayName: user.displayName,
       lastSyncAt: user.lastSyncAt,
-      gameMode: user.grailProgress?.gameMode || 'Both',
-      grailType: user.grailProgress?.grailType || 'Both',
+      gameMode: user.grailProgress?.gameMode || 'Softcore',
+      grailType: user.grailProgress?.grailType || 'Normal',
       includeRunes: user.grailProgress?.includeRunes || false,
       includeRunewords: user.grailProgress?.includeRunewords || false,
       progress: {

@@ -38,6 +38,11 @@ export async function GET(
       )
     }
 
+    // Calculate total achievement points earned
+    const totalAchievementPoints = user.achievements.reduce((total, userAchievement) => {
+      return total + (userAchievement.achievement?.points || 0)
+    }, 0)
+
     // Don't return sensitive information
     const publicUserData = {
       id: user.id,
@@ -45,6 +50,16 @@ export async function GET(
       displayName: user.displayName,
       createdAt: user.createdAt,
       lastSyncAt: user.lastSyncAt,
+      bio: user.bio,
+      country: user.country,
+      state: user.state,
+      avatarUrl: user.avatarUrl,
+      avatarType: user.avatarType,
+      diabloExperience: user.diabloExperience,
+      age: user.age,
+      gender: user.gender,
+      hobbies: user.hobbies,
+      isPublic: user.isPublic,
       grailProgress: user.grailProgress,
       achievements: user.achievements.map(ua => ({
         id: ua.id,
@@ -53,6 +68,7 @@ export async function GET(
         progress: ua.progress,
       })),
       statistics: user.statistics,
+      totalAchievementPoints,
     }
 
     return NextResponse.json({

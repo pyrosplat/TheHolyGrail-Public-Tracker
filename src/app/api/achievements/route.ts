@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
       include: {
         _count: {
           select: {
-            users: true // Count how many users have unlocked each achievement
+            userAchievements: true // Count how many users have unlocked each achievement
           }
         }
       },
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
 
     const achievementsWithStats = achievements.map(achievement => ({
       ...achievement,
-      unlockedBy: achievement._count.users,
-      unlockedPercentage: totalUsers > 0 ? (achievement._count.users / totalUsers) * 100 : 0
+      unlockedBy: achievement._count.userAchievements,
+      unlockedPercentage: totalUsers > 0 ? (achievement._count.userAchievements / totalUsers) * 100 : 0
     }))
 
     return NextResponse.json({

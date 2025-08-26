@@ -42,6 +42,7 @@ interface LeaderboardEntry {
   id: string
   username: string
   displayName?: string
+  avatarUrl?: string
   lastSyncAt?: string
   gameMode: string
   grailType: string
@@ -161,10 +162,7 @@ export default function LeaderboardsPage() {
   }
 
   const getRankIcon = (rank: number) => {
-    if (rank <= 3) {
-      return <TrophyIcon sx={{ color: getRankColor(rank) }} />
-    }
-    return `#${rank}`
+    return rank
   }
 
   const getProgressValue = (entry: LeaderboardEntry) => {
@@ -363,39 +361,52 @@ export default function LeaderboardsPage() {
                                 width: 32,
                                 height: 32,
                                 bgcolor: entry.rank <= 3 ? getRankColor(entry.rank) : 'grey.600',
-                                color: entry.rank <= 3 ? 'black' : 'white',
+                                color: entry.rank <= 3 ? '#000' : '#fff',
                                 fontSize: '0.875rem',
                                 fontWeight: 'bold',
+                                border: entry.rank <= 3 ? '2px solid rgba(0,0,0,0.2)' : 'none'
                               }}
                             >
-                              {entry.rank <= 3 ? getRankIcon(entry.rank) : entry.rank}
+                              {getRankIcon(entry.rank)}
                             </Avatar>
                           </Box>
                         </TableCell>
 
                         <TableCell>
-                          <Box>
-                            <Typography variant="subtitle1" fontWeight="bold">
-                              {entry.displayName || entry.username}
-                            </Typography>
-                            {entry.displayName && (
-                              <Typography variant="body2" color="text.secondary">
-                                @{entry.username}
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <Avatar
+                              src={entry.avatarUrl}
+                              sx={{
+                                width: 40,
+                                height: 40,
+                                bgcolor: 'primary.main',
+                              }}
+                            >
+                              {(entry.displayName || entry.username)[0]?.toUpperCase()}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="subtitle1" fontWeight="bold">
+                                {entry.displayName || entry.username}
                               </Typography>
-                            )}
-                            <Box display="flex" gap={1} mt={1}>
-                              <Chip
-                                size="small"
-                                label={entry.gameMode}
-                                color={entry.gameMode === 'Hardcore' ? 'error' : entry.gameMode === 'Softcore' ? 'primary' : 'default'}
-                                variant="outlined"
-                              />
-                              <Chip
-                                size="small"
-                                label={entry.grailType}
-                                color="secondary"
-                                variant="outlined"
-                              />
+                              {entry.displayName && (
+                                <Typography variant="body2" color="text.secondary">
+                                  @{entry.username}
+                                </Typography>
+                              )}
+                              <Box display="flex" gap={1} mt={1}>
+                                <Chip
+                                  size="small"
+                                  label={entry.gameMode}
+                                  color={entry.gameMode === 'Hardcore' ? 'error' : entry.gameMode === 'Softcore' ? 'primary' : 'default'}
+                                  variant="outlined"
+                                />
+                                <Chip
+                                  size="small"
+                                  label={entry.grailType}
+                                  color="secondary"
+                                  variant="outlined"
+                                />
+                              </Box>
                             </Box>
                           </Box>
                         </TableCell>

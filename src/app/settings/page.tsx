@@ -35,6 +35,8 @@ import {
   Save as SaveIcon,
   Cancel as CancelIcon,
   Person as PersonIcon,
+  PhotoCamera as PhotoCameraIcon,
+  CloudUpload as UploadIcon,
 } from '@mui/icons-material'
 
 interface UserProfile {
@@ -76,6 +78,11 @@ export default function SettingsPage() {
   const [clearProgressDialogOpen, setClearProgressDialogOpen] = useState(false)
   const [clearProgressConfirmation, setClearProgressConfirmation] = useState('')
   const [clearProgressLoading, setClearProgressLoading] = useState(false)
+
+  // Avatar upload state
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -170,6 +177,130 @@ export default function SettingsPage() {
       return hobbies.replace('Battle.net: ', '')
     }
     return ''
+  }
+
+  const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(file.type)) {
+        setError('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
+        return
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('File too large. Maximum size is 5MB.')
+        return
+      }
+
+      setAvatarFile(file)
+      
+      // Create preview URL
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+      setError('')
+    }
+  }
+
+  const handleUploadAvatar = async () => {
+    if (!avatarFile) {
+      setError('Please select a file first')
+      return
+    }
+
+    try {
+      setAvatarUploading(true)
+      setError('')
+
+      const formData = new FormData()
+      formData.append('avatar', avatarFile)
+
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Update profile state with new avatar
+        setProfile(prev => prev ? {
+          ...prev,
+          avatarUrl: data.data.avatarUrl,
+          avatarType: data.data.avatarType
+        } : null)
+        
+        setProfileForm(prev => ({
+          ...prev,
+          avatarUrl: data.data.avatarUrl,
+          avatarType: data.data.avatarType
+        }))
+
+        setAvatarPreview(null)
+        setAvatarFile(null)
+        setSuccess('Profile picture updated successfully!')
+        
+        // Reset file input
+        const fileInput = document.getElementById('avatar-upload') as HTMLInputElement
+        if (fileInput) {
+          fileInput.value = ''
+        }
+        
+        // Refresh session to show new avatar in navigation
+        window.location.reload()
+      } else {
+        setError(data.error || 'Failed to upload avatar')
+      }
+    } catch (error) {
+      console.error('Upload avatar error:', error)
+      setError('An error occurred while uploading your avatar')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  const handleRemoveAvatar = async () => {
+    try {
+      setAvatarUploading(true)
+      setError('')
+
+      const response = await fetch('/api/user/avatar', {
+        method: 'DELETE',
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Update profile state to remove avatar
+        setProfile(prev => prev ? {
+          ...prev,
+          avatarUrl: data.data.avatarUrl,
+          avatarType: data.data.avatarType
+        } : null)
+        
+        setProfileForm(prev => ({
+          ...prev,
+          avatarUrl: data.data.avatarUrl,
+          avatarType: data.data.avatarType
+        }))
+
+        setAvatarPreview(null)
+        setAvatarFile(null)
+        setSuccess('Profile picture removed successfully!')
+      } else {
+        setError(data.error || 'Failed to remove avatar')
+      }
+    } catch (error) {
+      console.error('Remove avatar error:', error)
+      setError('An error occurred while removing your avatar')
+    } finally {
+      setAvatarUploading(false)
+    }
   }
 
   const handleDeleteAccount = async () => {
@@ -345,19 +476,91 @@ export default function SettingsPage() {
                 <Typography variant="h6" gutterBottom>
                   Profile Picture
                 </Typography>
-                <Box display="flex" alignItems="center" gap={3}>
-                  <Avatar
-                    src={profile?.avatarUrl}
-                    sx={{ width: 80, height: 80 }}
-                  >
-                    <PersonIcon sx={{ fontSize: 40 }} />
-                  </Avatar>
-                  <Box>
+                <Box display="flex" alignItems="flex-start" gap={3}>
+                  <Box display="flex" flexDirection="column" alignItems="center" gap={2}>
+                    <Avatar
+                      src={avatarPreview || profile?.avatarUrl}
+                      sx={{ width: 80, height: 80 }}
+                    >
+                      <PersonIcon sx={{ fontSize: 40 }} />
+                    </Avatar>
+                    
+                    {editingProfile && (
+                      <Box display="flex" flexDirection="column" gap={1} alignItems="center">
+                        <input
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          style={{ display: 'none' }}
+                          id="avatar-upload"
+                          type="file"
+                          onChange={handleAvatarFileChange}
+                        />
+                        <label htmlFor="avatar-upload">
+                          <Button
+                            variant="outlined"
+                            component="span"
+                            size="small"
+                            startIcon={<PhotoCameraIcon />}
+                            disabled={avatarUploading}
+                          >
+                            Choose Image
+                          </Button>
+                        </label>
+                        
+                        {avatarPreview && (
+                          <Box display="flex" gap={1}>
+                            <Button
+                              variant="contained"
+                              size="small"
+                              startIcon={avatarUploading ? <CircularProgress size={16} /> : <UploadIcon />}
+                              onClick={handleUploadAvatar}
+                              disabled={avatarUploading}
+                            >
+                              Upload
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => {
+                                setAvatarPreview(null)
+                                setAvatarFile(null)
+                                const fileInput = document.getElementById('avatar-upload') as HTMLInputElement
+                                if (fileInput) fileInput.value = ''
+                              }}
+                              disabled={avatarUploading}
+                            >
+                              Cancel
+                            </Button>
+                          </Box>
+                        )}
+                        
+                        {profile?.avatarUrl && !avatarPreview && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={handleRemoveAvatar}
+                            disabled={avatarUploading}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                  
+                  <Box flex={1}>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Profile picture coming soon! For now, you'll see a default avatar.
+                      Upload a profile picture to personalize your account. 
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      • Supported formats: JPEG, PNG, WebP
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      • Maximum file size: 5MB
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Future updates will allow custom image uploads.
+                      • Square images work best (will be cropped to circle)
                     </Typography>
                   </Box>
                 </Box>

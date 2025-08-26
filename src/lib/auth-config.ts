@@ -53,11 +53,29 @@ export const authOptions: AuthOptions = {
     }
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session: updateSession }) {
       if (user) {
         token.username = user.username
         token.displayName = user.displayName
       }
+      
+      // Refresh user data on update
+      if (trigger === 'update' && token.sub) {
+        const updatedUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { 
+            username: true, 
+            displayName: true, 
+            avatarUrl: true 
+          }
+        })
+        if (updatedUser) {
+          token.username = updatedUser.username
+          token.displayName = updatedUser.displayName
+          token.avatarUrl = updatedUser.avatarUrl
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
@@ -65,6 +83,7 @@ export const authOptions: AuthOptions = {
         session.user.id = token.sub!
         session.user.username = token.username as string
         session.user.displayName = token.displayName as string | null
+        session.user.avatarUrl = token.avatarUrl as string | null
       }
       return session
     }

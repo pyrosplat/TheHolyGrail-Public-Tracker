@@ -79,7 +79,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   onClick={handleMenu}
                   color="inherit"
                 >
-                  <AccountCircle />
+                  {session.user.avatarUrl ? (
+                    <Avatar
+                      src={session.user.avatarUrl}
+                      sx={{ width: 32, height: 32 }}
+                    >
+                      {session.user.username?.[0]?.toUpperCase()}
+                    </Avatar>
+                  ) : (
+                    <AccountCircle />
+                  )}
                 </IconButton>
                 <Menu
                   id="menu-appbar"

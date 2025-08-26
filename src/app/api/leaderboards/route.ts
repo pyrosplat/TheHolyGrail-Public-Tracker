@@ -27,12 +27,16 @@ export async function GET(request: NextRequest) {
 
     // Filter by game mode - treat 'Both' as 'all' (no filter)
     if (gameMode !== 'all' && gameMode !== 'both') {
-      grailProgressFilters.gameMode = gameMode === 'softcore' ? 'Softcore' : gameMode === 'hardcore' ? 'Hardcore' : gameMode
+      // Use lowercase values as they are stored in the database
+      const gameModeValue = gameMode.toLowerCase()
+      grailProgressFilters.gameMode = gameModeValue
     }
 
     // Filter by grail type
     if (grailType !== 'all') {
-      grailProgressFilters.grailType = grailType === 'normal' ? 'Normal' : grailType === 'ethereal' ? 'Ethereal' : grailType === 'each' ? 'Each' : grailType === 'both' ? 'both' : grailType
+      // Use lowercase values as they are stored in the database
+      const grailTypeValue = grailType.toLowerCase()
+      grailProgressFilters.grailType = grailTypeValue
     }
 
     // Filter by rune/runeword inclusion
@@ -88,6 +92,7 @@ export async function GET(request: NextRequest) {
       id: user.id,
       username: user.username,
       displayName: user.displayName,
+      avatarUrl: user.avatarUrl,
       lastSyncAt: user.lastSyncAt,
       gameMode: user.grailProgress?.gameMode || 'Softcore',
       grailType: user.grailProgress?.grailType || 'Normal',

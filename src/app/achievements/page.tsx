@@ -27,6 +27,7 @@ import {
   Star as StarIcon,
   CheckCircle as CheckIcon,
 } from '@mui/icons-material'
+import Link from 'next/link'
 
 interface Achievement {
   id: string
@@ -62,12 +63,15 @@ export default function AchievementsPage() {
   const [loading, setLoading] = useState(true)
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [selectedRarity, setSelectedRarity] = useState<string | null>(null)
   
   const currentCategory = categories[activeTab]?.key || 'all'
 
-  const filteredAchievements = achievements.filter(achievement => 
-    currentCategory === 'all' || achievement.category === currentCategory
-  )
+  const filteredAchievements = achievements.filter(achievement => {
+    const categoryMatch = currentCategory === 'all' || achievement.category === currentCategory
+    const rarityMatch = !selectedRarity || achievement.rarity === selectedRarity
+    return categoryMatch && rarityMatch
+  })
 
   useEffect(() => {
     loadAchievements()
@@ -174,21 +178,68 @@ export default function AchievementsPage() {
             <Card>
               <CardContent>
                 <Typography variant="subtitle2" gutterBottom textAlign="center">
-                  Rarity Distribution
+                  Rarity Filter
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  {/* All Button */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Chip
+                      size="small"
+                      label="All"
+                      clickable
+                      variant={selectedRarity === null ? 'filled' : 'outlined'}
+                      onClick={() => setSelectedRarity(null)}
+                      sx={{ 
+                        backgroundColor: selectedRarity === null ? 'white' : 'transparent',
+                        color: selectedRarity === null ? 'black' : 'text.primary',
+                        minWidth: '70px',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          backgroundColor: selectedRarity === null ? '#f5f5f5' : 'action.hover',
+                        }
+                      }}
+                    />
+                    <Typography variant="body2">{achievements.length}</Typography>
+                  </Box>
+                  
+                  {/* Rarity Chips */}
                   {getRarityStats().map((stat) => (
                     <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Chip
                         size="small"
                         label={stat.rarity}
+                        clickable
+                        onClick={() => setSelectedRarity(stat.rarity.toLowerCase())}
                         sx={{ 
-                          backgroundColor: stat.color, 
-                          color: stat.rarity === 'Legendary' ? 'black' : 'white',
-                          minWidth: '70px'
+                          backgroundColor: selectedRarity === stat.rarity.toLowerCase() 
+                            ? stat.color 
+                            : selectedRarity === null 
+                              ? stat.color 
+                              : 'rgba(128, 128, 128, 0.3)',
+                          color: selectedRarity === stat.rarity.toLowerCase() || selectedRarity === null
+                            ? (stat.rarity === 'Legendary' ? 'black' : 'white')
+                            : 'text.secondary',
+                          minWidth: '70px',
+                          cursor: 'pointer',
+                          opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            backgroundColor: stat.color,
+                            color: stat.rarity === 'Legendary' ? 'black' : 'white',
+                            opacity: 1,
+                            transform: 'scale(1.05)',
+                          }
                         }}
                       />
-                      <Typography variant="body2">{stat.count}</Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                          transition: 'opacity 0.2s ease'
+                        }}
+                      >
+                        {stat.count}
+                      </Typography>
                     </Box>
                   ))}
                 </Box>
@@ -231,15 +282,26 @@ export default function AchievementsPage() {
               {filteredAchievements.map((achievement) => (
                 <Grid item xs={12} sm={6} md={4} key={achievement.id}>
                   <Card
+                    component={Link}
+                    href={`/achievements/${achievement.id}`}
                     variant="outlined"
                     sx={{
                       border: '2px solid',
                       borderColor: rarityColors[achievement.rarity as keyof typeof rarityColors],
                       height: '100%',
-                      transition: 'all 0.3s ease',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      color: 'inherit',
+                      display: 'block',
                       '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: `0 8px 25px ${rarityColors[achievement.rarity as keyof typeof rarityColors]}30`,
+                        transform: 'translateY(-8px) scale(1.02)',
+                        boxShadow: `0 12px 30px ${rarityColors[achievement.rarity as keyof typeof rarityColors]}50`,
+                        borderColor: rarityColors[achievement.rarity as keyof typeof rarityColors],
+                        borderWidth: '3px',
+                      },
+                      '&:active': {
+                        transform: 'translateY(-4px) scale(1.01)',
                       },
                     }}
                   >

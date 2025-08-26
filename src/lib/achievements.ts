@@ -146,6 +146,60 @@ export const ACHIEVEMENTS = [
     conditions: { rainbowFacets: { min: 8 } },
   },
 
+  // Item Category Achievements
+  {
+    key: 'weapon_collector',
+    name: 'Weapon Master',
+    description: 'Find 50 unique weapons',
+    icon: '⚔️',
+    category: 'milestone',
+    rarity: 'rare',
+    points: 75,
+    conditions: { weaponsOwned: { min: 50 } },
+  },
+  {
+    key: 'armor_collector',
+    name: 'Armorer',
+    description: 'Find 30 unique armor pieces',
+    icon: '🛡️',
+    category: 'milestone',
+    rarity: 'rare',
+    points: 60,
+    conditions: { armorOwned: { min: 30 } },
+  },
+  {
+    key: 'ethereal_hunter',
+    name: 'Ghost Hunter',
+    description: 'Find 25 ethereal items',
+    icon: '👻',
+    category: 'milestone',
+    rarity: 'epic',
+    points: 100,
+    conditions: { totalEthItems: { min: 25 } },
+  },
+
+  // Streak Achievements
+  {
+    key: 'week_streak',
+    name: 'Weekly Warrior',
+    description: 'Find items for 7 consecutive days',
+    icon: '🔥',
+    category: 'special',
+    rarity: 'rare',
+    points: 50,
+    conditions: { currentStreak: { min: 7 } },
+  },
+  {
+    key: 'month_streak',
+    name: 'Monthly Champion',
+    description: 'Find items for 30 consecutive days',
+    icon: '🏆',
+    category: 'special',
+    rarity: 'epic',
+    points: 200,
+    conditions: { currentStreak: { min: 30 } },
+  },
+
   // Speed Achievements
   {
     key: 'speed_demon',

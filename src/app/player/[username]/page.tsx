@@ -18,6 +18,10 @@ import {
   Alert,
   Divider,
   Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material'
 import {
   EmojiEvents as TrophyIcon,
@@ -25,6 +29,10 @@ import {
   CheckCircle as CheckIcon,
   Schedule as ClockIcon,
   ViewList as ViewListIcon,
+  LocationOn as LocationIcon,
+  Person as PersonIcon,
+  SportsEsports as GamingIcon,
+  Badge as BattleNetIcon,
 } from '@mui/icons-material'
 import Link from 'next/link'
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar'
@@ -36,6 +44,16 @@ interface PlayerData {
   displayName?: string
   createdAt: string
   lastSyncAt?: string
+  bio?: string
+  country?: string
+  state?: string
+  avatarUrl?: string
+  avatarType: string
+  diabloExperience?: string
+  age?: number
+  gender?: string
+  hobbies?: string
+  isPublic: boolean
   grailProgress: {
     gameMode: string
     grailType: string
@@ -73,6 +91,7 @@ interface PlayerData {
     currentStreak: number
     longestStreak: number
   }
+  totalAchievementPoints: number
 }
 
 export default function PlayerProfilePage() {
@@ -82,6 +101,7 @@ export default function PlayerProfilePage() {
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [achievementSort, setAchievementSort] = useState<string>('points-desc')
 
   useEffect(() => {
     fetchPlayerData()
@@ -126,13 +146,50 @@ export default function PlayerProfilePage() {
 
   const { grailProgress, achievements, statistics } = player
 
+  // Sort achievements based on selected criteria
+  const getSortedAchievements = () => {
+    const sorted = [...achievements]
+    
+    switch (achievementSort) {
+      case 'points-desc':
+        return sorted.sort((a, b) => b.achievement.points - a.achievement.points)
+      case 'points-asc':
+        return sorted.sort((a, b) => a.achievement.points - b.achievement.points)
+      case 'rarity-legendary':
+        return sorted.filter(a => a.achievement.rarity === 'legendary')
+          .concat(sorted.filter(a => a.achievement.rarity !== 'legendary'))
+      case 'rarity-epic':
+        return sorted.filter(a => a.achievement.rarity === 'epic')
+          .concat(sorted.filter(a => a.achievement.rarity !== 'epic'))
+      case 'rarity-rare':
+        return sorted.filter(a => a.achievement.rarity === 'rare')
+          .concat(sorted.filter(a => a.achievement.rarity !== 'rare'))
+      case 'rarity-common':
+        return sorted.filter(a => a.achievement.rarity === 'common')
+          .concat(sorted.filter(a => a.achievement.rarity !== 'common'))
+      case 'date-desc':
+        return sorted.sort((a, b) => new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime())
+      case 'date-asc':
+        return sorted.sort((a, b) => new Date(a.unlockedAt).getTime() - new Date(b.unlockedAt).getTime())
+      case 'name':
+        return sorted.sort((a, b) => a.achievement.name.localeCompare(b.achievement.name))
+      default:
+        return sorted
+    }
+  }
+
+  const sortedAchievements = getSortedAchievements()
+
   return (
     <Box>
       {/* Player Header */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Box display="flex" alignItems="center" gap={3}>
-            <Avatar sx={{ width: 80, height: 80, fontSize: '2rem', bgcolor: 'primary.main' }}>
+            <Avatar 
+              src={player.avatarUrl} 
+              sx={{ width: 80, height: 80, fontSize: '2rem', bgcolor: 'primary.main' }}
+            >
               {player.displayName?.[0]?.toUpperCase() || player.username[0]?.toUpperCase()}
             </Avatar>
             <Box flex={1}>
@@ -147,7 +204,7 @@ export default function PlayerProfilePage() {
                 />
                 <Chip
                   icon={<TrophyIcon />}
-                  label={`${achievements.length} Achievements`}
+                  label={`${achievements.length} Achievements • ${player.totalAchievementPoints} pts`}
                   color="secondary"
                 />
                 <Chip
@@ -160,6 +217,94 @@ export default function PlayerProfilePage() {
           </Box>
         </CardContent>
       </Card>
+
+      {/* Profile Information */}
+      {(player.bio || player.country || player.state || player.diabloExperience || player.hobbies || player.age || player.gender) && (
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom>
+              About {player.displayName || player.username}
+            </Typography>
+            
+            <Grid container spacing={3}>
+              {/* Bio */}
+              {player.bio && (
+                <Grid item xs={12}>
+                  <Typography variant="body1" paragraph>
+                    {player.bio}
+                  </Typography>
+                </Grid>
+              )}
+
+              {/* Location */}
+              {(player.country || player.state) && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <LocationIcon color="primary" />
+                    <Typography variant="body1">
+                      {[player.state, player.country].filter(Boolean).join(', ')}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Battle.net ID */}
+              {player.hobbies?.startsWith('Battle.net: ') && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <BattleNetIcon color="primary" />
+                    <Typography variant="body1">
+                      {player.hobbies.replace('Battle.net: ', '')}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Age */}
+              {player.age && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <PersonIcon color="primary" />
+                    <Typography variant="body1">
+                      {player.age} years old
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Gender */}
+              {player.gender && (
+                <Grid item xs={12} sm={6} md={4}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <PersonIcon color="primary" />
+                    <Typography variant="body1">
+                      {player.gender === 'male' && 'Male'}
+                      {player.gender === 'female' && 'Female'}
+                      {player.gender === 'other' && 'Other'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Diablo Experience */}
+              {player.diabloExperience && (
+                <Grid item xs={12}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <GamingIcon color="primary" />
+                    <Typography variant="body1">
+                      {player.diabloExperience === 'new' && 'New to Diablo II (Less than 1 year)'}
+                      {player.diabloExperience === 'casual' && 'Casual player (1-3 years)'}
+                      {player.diabloExperience === 'experienced' && 'Experienced player (3-10 years)'}
+                      {player.diabloExperience === 'veteran' && 'Veteran player (10+ years)'}
+                      {player.diabloExperience === 'original' && 'Original D2 player (Since 2000)'}
+                    </Typography>
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
 
       <Grid container spacing={4}>
         {/* Progress Overview */}
@@ -338,6 +483,24 @@ export default function PlayerProfilePage() {
               <List dense>
                 <ListItem>
                   <ListItemText
+                    primary={
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <TrophyIcon sx={{ fontSize: '1.2rem', color: 'primary.main' }} />
+                        <Typography component="span" variant="subtitle1" fontWeight="bold">
+                          Profile Score
+                        </Typography>
+                      </Box>
+                    }
+                    secondary={
+                      <Typography component="span" variant="h6" color="primary.main" fontWeight="bold">
+                        {player.totalAchievementPoints} points
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+                <Divider sx={{ my: 1 }} />
+                <ListItem>
+                  <ListItemText
                     primary="Items per day"
                     secondary={statistics.itemsPerDay.toFixed(1)}
                   />
@@ -387,9 +550,29 @@ export default function PlayerProfilePage() {
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h4" gutterBottom>
-                Achievements ({achievements.length})
-              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Typography variant="h4">
+                  Achievements ({achievements.length})
+                </Typography>
+                <FormControl size="small" sx={{ minWidth: 200 }}>
+                  <InputLabel>Sort by</InputLabel>
+                  <Select
+                    value={achievementSort}
+                    label="Sort by"
+                    onChange={(e) => setAchievementSort(e.target.value)}
+                  >
+                    <MenuItem value="points-desc">Points (High to Low)</MenuItem>
+                    <MenuItem value="points-asc">Points (Low to High)</MenuItem>
+                    <MenuItem value="rarity-legendary">Legendary First</MenuItem>
+                    <MenuItem value="rarity-epic">Epic First</MenuItem>
+                    <MenuItem value="rarity-rare">Rare First</MenuItem>
+                    <MenuItem value="rarity-common">Common First</MenuItem>
+                    <MenuItem value="date-desc">Recently Unlocked</MenuItem>
+                    <MenuItem value="date-asc">Oldest First</MenuItem>
+                    <MenuItem value="name">Name (A-Z)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
               
               {achievements.length === 0 ? (
                 <Typography color="text.secondary" textAlign="center" py={4}>
@@ -397,7 +580,7 @@ export default function PlayerProfilePage() {
                 </Typography>
               ) : (
                 <Grid container spacing={3}>
-                  {achievements.map((userAchievement) => (
+                  {sortedAchievements.map((userAchievement) => (
                     <Grid item xs={12} sm={6} md={4} key={userAchievement.id}>
                       <Card
                         variant="outlined"
@@ -432,12 +615,20 @@ export default function PlayerProfilePage() {
                           <Typography variant="body2" color="text.secondary" mb={2}>
                             {userAchievement.achievement.description}
                           </Typography>
-                          <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Chip
-                              size="small"
-                              label={userAchievement.achievement.rarity}
-                              className={`achievement-${userAchievement.achievement.rarity}`}
-                            />
+                          <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={1}>
+                            <Box display="flex" gap={1}>
+                              <Chip
+                                size="small"
+                                label={userAchievement.achievement.rarity}
+                                className={`achievement-${userAchievement.achievement.rarity}`}
+                              />
+                              <Chip
+                                size="small"
+                                label={`${userAchievement.achievement.points} pts`}
+                                color="primary"
+                                variant="outlined"
+                              />
+                            </Box>
                             <Typography variant="caption" color="text.secondary">
                               {new Date(userAchievement.unlockedAt).toLocaleDateString()}
                             </Typography>

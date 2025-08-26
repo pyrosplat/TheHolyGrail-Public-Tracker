@@ -32,6 +32,7 @@ interface LeaderboardEntry {
   id: string
   username: string
   displayName?: string
+  avatarUrl?: string
   rank: number
   progress: {
     overall: number
@@ -257,13 +258,25 @@ export default function HomePage() {
                         },
                       }}
                     >
-                      <ListItemAvatar>
-                        <Avatar sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                      <Box display="flex" alignItems="center" gap={2} mr={2}>
+                        <Avatar 
+                          src={player.avatarUrl}
+                          sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}
+                        >
+                          {player.username[0]?.toUpperCase()}
+                        </Avatar>
+                        <Avatar sx={{ 
+                          bgcolor: 'primary.main', 
+                          color: 'primary.contrastText',
+                          width: 28,
+                          height: 28,
+                          fontSize: '0.75rem'
+                        }}>
                           #{player.rank}
                         </Avatar>
-                      </ListItemAvatar>
+                      </Box>
                       <ListItemText
-                        primary={player.username}
+                        primary={player.displayName || player.username}
                         secondary={
                           <Box>
                             <Typography variant="body2" color="text.secondary">

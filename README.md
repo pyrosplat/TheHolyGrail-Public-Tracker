@@ -30,4 +30,3 @@ Here are some sample screenshots from the app (assumed to be in the `images/` di
 
 ![Generate api key to connect app](docs/images/api_key_gen.png)  
 *(Description: Generate a unique api key to link your client app with the web server)*
->>>>>>> 39c584ea634be74507496b13779aa0b07348acbc

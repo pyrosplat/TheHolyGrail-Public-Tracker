@@ -49,6 +49,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if grail configuration is locked
+    const existingProgress = await prisma.grailProgress.findUnique({
+      where: { userId: user.id }
+    })
+
+    if (existingProgress && existingProgress.configurationLocked) {
+      // Validate that core settings haven't changed
+      if (
+        existingProgress.gameMode !== syncData.gameMode ||
+        existingProgress.grailType !== syncData.grailType ||
+        existingProgress.includeRunes !== syncData.includeRunes ||
+        existingProgress.includeRunewords !== syncData.includeRunewords
+      ) {
+        return NextResponse.json(
+          { 
+            error: 'Configuration locked: Cannot change gameMode, grailType, includeRunes, or includeRunewords. Delete your grail in settings to start fresh.',
+            lockedConfig: {
+              gameMode: existingProgress.gameMode,
+              grailType: existingProgress.grailType,
+              includeRunes: existingProgress.includeRunes,
+              includeRunewords: existingProgress.includeRunewords
+            }
+          },
+          { status: 403 }
+        )
+      }
+    }
+
     // Use the detailed stats sent by the desktop client instead of recalculating
     const detailedStats = syncData.detailedStats
     const totalItems = Object.keys(syncData.items).length
@@ -76,10 +104,14 @@ export async function POST(request: NextRequest) {
     const updatedProgress = await prisma.grailProgress.upsert({
       where: { userId: user.id },
       update: {
-        gameMode: syncData.gameMode,
-        grailType: syncData.grailType,
-        includeRunes: syncData.includeRunes,
-        includeRunewords: syncData.includeRunewords,
+        // Don't update these if configuration is locked
+        ...((!existingProgress || !existingProgress.configurationLocked) && {
+          gameMode: syncData.gameMode,
+          grailType: syncData.grailType,
+          includeRunes: syncData.includeRunes,
+          includeRunewords: syncData.includeRunewords,
+        }),
+        configurationLocked: true, // Lock configuration after first update
         items: syncData.items,
         ethItems: syncData.ethItems,
         runes: syncData.runes || {},
@@ -114,6 +146,7 @@ export async function POST(request: NextRequest) {
         grailType: syncData.grailType,
         includeRunes: syncData.includeRunes,
         includeRunewords: syncData.includeRunewords,
+        configurationLocked: true, // Lock configuration on creation
         items: syncData.items,
         ethItems: syncData.ethItems,
         runes: syncData.runes || {},

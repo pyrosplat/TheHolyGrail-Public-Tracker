@@ -57,6 +57,7 @@ model GrailProgress {
   grailType          String   @default("Normal")
   includeRunes       Boolean  @default(true)
   includeRunewords   Boolean  @default(true)
+  configurationLocked Boolean  @default(false)
   items              Json     @default("{}")
   ethItems           Json     @default("{}")
   runes              Json     @default("{}")

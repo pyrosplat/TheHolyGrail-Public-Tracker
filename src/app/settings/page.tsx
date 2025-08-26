@@ -725,6 +725,7 @@ export default function SettingsPage() {
               <li>All grail progress data</li>
               <li>Statistics and achievements</li>
               <li>Item tracking history</li>
+              <li><strong>Unlock grail configuration</strong> (allows changing gameMode, grailType, runes/runewords settings)</li>
             </Box>
             <Typography variant="body2" color="text.secondary" paragraph>
               Your account, API keys, and login credentials will remain intact.

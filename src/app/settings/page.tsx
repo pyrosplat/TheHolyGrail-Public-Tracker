@@ -38,6 +38,7 @@ import {
   PhotoCamera as PhotoCameraIcon,
   CloudUpload as UploadIcon,
 } from '@mui/icons-material'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface UserProfile {
   id: string
@@ -57,6 +58,7 @@ interface UserProfile {
 }
 
 export default function SettingsPage() {
+  const { mode } = useTheme()
   const { data: session } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -386,7 +388,7 @@ export default function SettingsPage() {
 
   return (
     <Box p={3} maxWidth="800px" mx="auto">
-      <Typography variant="h3" gutterBottom>
+      <Typography variant="h3" gutterBottom sx={{ color: mode === 'dark' ? '#ffffff' : 'inherit' }}>
         Account Settings
       </Typography>
 

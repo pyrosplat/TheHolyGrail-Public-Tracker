@@ -5,14 +5,26 @@ import { useParams } from 'next/navigation'
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   Chip,
   CircularProgress,
   Alert,
   LinearProgress,
+  TextField,
+  FormControlLabel,
+  Switch,
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material'
+import {
+  CheckCircle as CheckCircleIcon,
+  RadioButtonUnchecked as RadioButtonUncheckedIcon,
+  Search as SearchIcon
+} from '@mui/icons-material'
 import { useTheme } from '@/contexts/ThemeContext'
 
 interface PlayerData {
@@ -35,6 +47,13 @@ interface CategorySummary {
   percentage: number
 }
 
+interface ItemData {
+  name: string
+  found: boolean
+  type?: string
+  key?: string
+}
+
 interface ItemsData {
   categories: CategorySummary[]
   totalOwned: number
@@ -43,7 +62,23 @@ interface ItemsData {
   grailType: string
   includeRunes: boolean
   includeRunewords: boolean
-  actualItems?: any
+  actualItems?: {
+    items: any
+    ethItems: any
+    runes: any
+    runewords: any
+  }
+  categorizedItems?: {
+    uniqueArmor: any[]
+    uniqueWeapons: any[]
+    uniqueOther: any[]
+    sets: any[]
+    ethUniqueArmor: any[]
+    ethUniqueWeapons: any[]
+    ethUniqueOther: any[]
+    runes: any[]
+    runewords: any[]
+  }
 }
 
 export default function PlayerItemsPage() {
@@ -54,6 +89,9 @@ export default function PlayerItemsPage() {
   const [itemsData, setItemsData] = useState<ItemsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [showMissingItems, setShowMissingItems] = useState(false)
+  const [sortBy, setSortBy] = useState<'itemCode' | 'alphabetical'>('itemCode')
 
   useEffect(() => {
     fetchPlayerAndItems()
@@ -94,6 +132,186 @@ export default function PlayerItemsPage() {
     }
   }
 
+  // Helper function to clean up item names
+  const cleanItemName = (name: string): string => {
+    return name.replace(/([a-z])([A-Z])/g, '$1 $2')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+      .replace(/([a-z])'([A-Z])/g, '$1\'$2')
+      .replace(/\bOf\b/g, 'of')
+      .replace(/\bThe\b/g, 'the')
+      .replace(/\bAnd\b/g, 'and')
+      .trim()
+  }
+
+  const processItemsForCategory = (categoryName: string): ItemData[] => {
+    if (!itemsData?.categorizedItems) return []
+
+    const items: ItemData[] = []
+    const { categorizedItems } = itemsData
+    
+    // Get the category info to determine missing items count
+    const categoryInfo = itemsData.categories.find(cat => cat.name === categoryName)
+
+    // Use the server-side categorization directly
+    switch (categoryName) {
+      case 'Unique Armor':
+        categorizedItems.uniqueArmor.forEach(item => {
+          items.push({
+            name: cleanItemName(item.name),
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Unique Weapons':
+        categorizedItems.uniqueWeapons.forEach(item => {
+          items.push({
+            name: cleanItemName(item.name),
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Unique Other':
+        categorizedItems.uniqueOther.forEach(item => {
+          items.push({
+            name: cleanItemName(item.name),
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Sets':
+        categorizedItems.sets.forEach(item => {
+          items.push({
+            name: cleanItemName(item.name),
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Ethereal Unique Armor':
+        categorizedItems.ethUniqueArmor.forEach(item => {
+          items.push({
+            name: `${cleanItemName(item.name)} (Ethereal)`,
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Ethereal Unique Weapons':
+        categorizedItems.ethUniqueWeapons.forEach(item => {
+          items.push({
+            name: `${cleanItemName(item.name)} (Ethereal)`,
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Ethereal Unique Other':
+        categorizedItems.ethUniqueOther.forEach(item => {
+          items.push({
+            name: `${cleanItemName(item.name)} (Ethereal)`,
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Runes':
+        categorizedItems.runes.forEach(item => {
+          items.push({
+            name: cleanItemName(item.name),
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      case 'Runewords':
+        categorizedItems.runewords.forEach(item => {
+          const cleanName = cleanItemName(item.name).replace(/^Runeword\s*/i, '').trim()
+          items.push({
+            name: cleanName,
+            found: true,
+            type: item.type,
+            key: item.key
+          })
+        })
+        break
+
+      default:
+        break
+    }
+
+    // Add placeholder missing items if toggle is enabled
+    if (showMissingItems && categoryInfo) {
+      const missingCount = categoryInfo.exists - categoryInfo.owned
+      for (let i = 0; i < missingCount; i++) {
+        items.push({
+          name: `Missing Item ${i + 1}`,
+          found: false,
+          type: 'unknown'
+        })
+      }
+    }
+
+    // Apply search filter
+    let filteredItems = items
+    if (searchTerm) {
+      filteredItems = items.filter(item => 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    // Sort items based on selected sorting method
+    console.log(`Sorting ${categoryName} with sortBy=${sortBy}, items:`, filteredItems.map(i => ({ name: i.name, key: i.key })))
+    
+    return filteredItems.sort((a, b) => {
+      // Always show found items first
+      if (a.found !== b.found) {
+        return a.found ? -1 : 1
+      }
+      
+      if (sortBy === 'alphabetical') {
+        // Alphabetical sorting by name
+        return a.name.localeCompare(b.name)
+      } else {
+        // Item code sorting (default)
+        
+        // For runes, always sort by key if available (r01, r02, r03, etc.)
+        if (categoryName === 'Runes' && a.key && b.key) {
+          return a.key.localeCompare(b.key, undefined, { numeric: true })
+        }
+        
+        // For all other categories, sort by item key if available, otherwise by name
+        if (a.key && b.key) {
+          return a.key.localeCompare(b.key, undefined, { numeric: true })
+        }
+        
+        // Fallback to alphabetical if no keys
+        return a.name.localeCompare(b.name)
+      }
+    })
+  }
+
+
   if (!itemsData) {
     return null // Will be handled by loading/error states below
   }
@@ -131,7 +349,8 @@ export default function PlayerItemsPage() {
           gutterBottom
           sx={{ 
             fontFamily: '"Exocet", "serif"',
-            textAlign: 'center'
+            textAlign: 'center',
+            color: mode === 'dark' ? '#ffffff' : 'inherit'
           }}
         >
           {player?.displayName || player?.username}'s Grail Progress
@@ -175,20 +394,75 @@ export default function PlayerItemsPage() {
         </Box>
       </Box>
 
-      {/* Category Summary Cards */}
-      <Grid container spacing={3}>
-        {itemsData.categories.map((category, index) => (
-          <Grid item xs={12} sm={6} md={4} key={category.name}>
-            <Card 
-              sx={{ 
-                height: '100%',
-                '&:hover': { boxShadow: 6 }
+      {/* Search and Filter Controls */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent>
+          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
+            <TextField
+              placeholder="Search items..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              variant="outlined"
+              size="small"
+              sx={{ flex: 1, minWidth: '300px' }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
               }}
-            >
-              <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
-                  <Typography variant="h6" component="h2">
-                    {category.name}
+            />
+            <FormControl size="small" sx={{ minWidth: '160px' }}>
+              <InputLabel>Sort By</InputLabel>
+              <Select
+                value={sortBy}
+                label="Sort By"
+                onChange={(e) => setSortBy(e.target.value as 'itemCode' | 'alphabetical')}
+              >
+                <MenuItem value="itemCode">Item Code</MenuItem>
+                <MenuItem value="alphabetical">Alphabetical</MenuItem>
+              </Select>
+            </FormControl>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showMissingItems}
+                  onChange={(e) => setShowMissingItems(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Show Missing Items"
+            />
+          </Box>
+        </CardContent>
+      </Card>
+
+      {/* Desktop Client Style Item Lists */}
+      <Box>
+        {itemsData.categories.map((category, index) => (
+          <Card key={category.name} sx={{ mb: 3 }}>
+            <CardContent>
+              {/* Category Header */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography 
+                  variant="h5" 
+                  component="h2"
+                  sx={{ 
+                    fontFamily: '\"Exocet\", \"serif\"',
+                    color: '#CC5F43'
+                  }}
+                >
+                  {category.name}
+                </Typography>
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Typography 
+                    variant="h6"
+                    sx={{ 
+                      color: (theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
+                    }}
+                  >
+                    {category.owned}/{category.exists}
                   </Typography>
                   <Chip 
                     label={`${category.percentage.toFixed(1)}%`}
@@ -196,45 +470,125 @@ export default function PlayerItemsPage() {
                     size="small"
                   />
                 </Box>
-                
-                <Typography 
-                  variant="h4" 
-                  gutterBottom
+              </Box>
+
+              {/* Progress Bar */}
+              <Box sx={{ width: '100%', mb: 3 }}>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={Math.min(category.percentage, 100)} 
                   sx={{ 
-                    color: (theme) => theme.palette.mode === 'dark' ? '#ffffff' : '#000000'
+                    height: 6, 
+                    borderRadius: 3,
+                    backgroundColor: 'grey.200',
+                    '& .MuiLinearProgress-bar': {
+                      borderRadius: 3,
+                      backgroundColor: '#CC5F43'
+                    }
                   }}
-                >
-                  {category.owned}/{category.exists}
-                </Typography>
-                
-                <Box sx={{ width: '100%', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ width: '100%', mr: 1 }}>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={Math.min(category.percentage, 100)} 
-                        sx={{ 
-                          height: 8, 
-                          borderRadius: 4,
-                          backgroundColor: 'grey.200',
-                          '& .MuiLinearProgress-bar': {
-                            borderRadius: 4,
-                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
-                          }
-                        }}
-                      />
+                />
+              </Box>
+
+              {/* Items List - Desktop Client Style */}
+              <Box>
+                {(() => {
+                  const items = processItemsForCategory(category.name)
+                  const foundItems = items.filter(item => item.found)
+                  const missingItems = items.filter(item => !item.found)
+                  
+                  return items.length > 0 ? (
+                    <Box>
+                      {/* Results Summary */}
+                      {(searchTerm || showMissingItems) && (
+                        <Box sx={{ mb: 1, px: 1 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {searchTerm && `Search results: ${items.length} items found`}
+                            {searchTerm && showMissingItems && ' • '}
+                            {showMissingItems && `Found: ${foundItems.length}, Missing: ${missingItems.length}`}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {/* Items Grid */}
+                    <Box 
+                      sx={{ 
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                        gap: 1,
+                        maxHeight: '300px',
+                        overflow: 'auto',
+                        border: `1px solid ${mode === 'dark' ? '#333' : '#ddd'}`,
+                        borderRadius: 1,
+                        p: 1,
+                        backgroundColor: mode === 'dark' ? '#1a1a1a' : '#f9f9f9'
+                      }}
+                    >
+                      {items.map((item, itemIndex) => (
+                        <Box 
+                          key={`${item.name}-${itemIndex}`}
+                          sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            p: 0.5,
+                            opacity: item.found ? 1 : 0.6,
+                            '&:hover': {
+                              backgroundColor: mode === 'dark' ? '#2a2a2a' : '#f0f0f0'
+                            }
+                          }}
+                        >
+                          {item.found ? (
+                            <CheckCircleIcon 
+                              sx={{ 
+                                color: mode === 'dark' ? '#4caf50' : '#2e7d32',
+                                fontSize: '18px'
+                              }} 
+                            />
+                          ) : (
+                            <RadioButtonUncheckedIcon 
+                              sx={{ 
+                                color: mode === 'dark' ? '#666' : '#ccc',
+                                fontSize: '18px'
+                              }} 
+                            />
+                          )}
+                          <Typography 
+                            variant="body2"
+                            sx={{ 
+                              color: item.found 
+                                ? (mode === 'dark' ? '#ffffff' : '#000000')
+                                : (mode === 'dark' ? '#999' : '#666'),
+                              fontSize: '0.9rem',
+                              fontStyle: item.found ? 'normal' : 'italic'
+                            }}
+                          >
+                            {item.name}
+                          </Typography>
+                        </Box>
+                      ))}
+                      </Box>
                     </Box>
-                  </Box>
-                </Box>
-                
-                <Typography variant="body2" color="text.secondary">
-                  {category.exists - category.owned} remaining
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
+                  ) : (
+                    <Box 
+                      sx={{ 
+                        p: 2, 
+                        textAlign: 'center',
+                        border: `1px dashed ${mode === 'dark' ? '#555' : '#ccc'}`,
+                        borderRadius: 1,
+                        backgroundColor: mode === 'dark' ? '#1a1a1a' : '#f9f9f9'
+                      }}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        No items found in this category yet
+                      </Typography>
+                    </Box>
+                  )
+                })()}
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
+      </Box>
 
       {/* Overall Progress Summary */}
       <Card sx={{ mt: 3 }}>
@@ -281,7 +635,7 @@ export default function PlayerItemsPage() {
                 backgroundColor: 'grey.200',
                 '& .MuiLinearProgress-bar': {
                   borderRadius: 6,
-                  backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
+                  backgroundColor: '#CC5F43'
                 }
               }}
             />

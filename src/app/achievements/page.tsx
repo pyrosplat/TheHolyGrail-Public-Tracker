@@ -125,7 +125,7 @@ export default function AchievementsPage() {
 
   return (
     <Box>
-      <Typography variant="h2" gutterBottom textAlign="center">
+      <Typography variant="h2" gutterBottom textAlign="center" sx={{ color: mode === 'dark' ? '#ffffff' : 'inherit' }}>
         Achievements
       </Typography>
       <Typography variant="body1" color="text.secondary" textAlign="center" mb={4}>
@@ -138,7 +138,7 @@ export default function AchievementsPage() {
           <Grid item xs={12} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="primary" gutterBottom>
+                <Typography variant="h4" gutterBottom sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}>
                   {achievements.length}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -151,7 +151,7 @@ export default function AchievementsPage() {
           <Grid item xs={12} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="warning.main" gutterBottom>
+                <Typography variant="h4" gutterBottom sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}>
                   {totalPoints.toLocaleString()}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -164,7 +164,7 @@ export default function AchievementsPage() {
           <Grid item xs={12} md={3}>
             <Card>
               <CardContent sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="success.main" gutterBottom>
+                <Typography variant="h4" gutterBottom sx={{ color: mode === 'dark' ? '#ffffff' : '#000000' }}>
                   {totalUnlocks.toLocaleString()}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -180,68 +180,121 @@ export default function AchievementsPage() {
                 <Typography variant="subtitle2" gutterBottom textAlign="center">
                   Rarity Filter
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {/* All Button */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Chip
-                      size="small"
-                      label="All"
-                      clickable
-                      variant={selectedRarity === null ? 'filled' : 'outlined'}
-                      onClick={() => setSelectedRarity(null)}
-                      sx={{ 
-                        backgroundColor: selectedRarity === null ? 'white' : 'transparent',
-                        color: selectedRarity === null ? 'black' : 'text.primary',
-                        minWidth: '70px',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          backgroundColor: selectedRarity === null ? '#f5f5f5' : 'action.hover',
-                        }
-                      }}
-                    />
-                    <Typography variant="body2">{achievements.length}</Typography>
-                  </Box>
-                  
-                  {/* Rarity Chips */}
-                  {getRarityStats().map((stat) => (
-                    <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {/* Row 1: All Button - Centered */}
+                  <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Chip
                         size="small"
-                        label={stat.rarity}
+                        label="All"
                         clickable
-                        onClick={() => setSelectedRarity(stat.rarity.toLowerCase())}
+                        variant={selectedRarity === null ? 'filled' : 'outlined'}
+                        onClick={() => setSelectedRarity(null)}
                         sx={{ 
-                          backgroundColor: selectedRarity === stat.rarity.toLowerCase() 
-                            ? stat.color 
-                            : selectedRarity === null 
-                              ? stat.color 
-                              : 'rgba(128, 128, 128, 0.3)',
-                          color: selectedRarity === stat.rarity.toLowerCase() || selectedRarity === null
-                            ? (stat.rarity === 'Legendary' ? 'black' : 'white')
-                            : 'text.secondary',
+                          backgroundColor: selectedRarity === null ? 'white' : 'transparent',
+                          color: selectedRarity === null ? 'black' : 'text.primary',
                           minWidth: '70px',
                           cursor: 'pointer',
-                          opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
-                          transition: 'all 0.2s ease',
                           '&:hover': {
-                            backgroundColor: stat.color,
-                            color: stat.rarity === 'Legendary' ? 'black' : 'white',
-                            opacity: 1,
-                            transform: 'scale(1.05)',
+                            backgroundColor: selectedRarity === null ? '#f5f5f5' : 'action.hover',
                           }
                         }}
                       />
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
-                          transition: 'opacity 0.2s ease'
-                        }}
-                      >
-                        {stat.count}
-                      </Typography>
+                      <Typography variant="body2">{achievements.length}</Typography>
                     </Box>
-                  ))}
+                  </Box>
+                  
+                  {/* Row 2: Common and Rare */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                    {getRarityStats().filter(stat => ['Common', 'Rare'].includes(stat.rarity)).sort((a, b) => {
+                      const order = ['Common', 'Rare'];
+                      return order.indexOf(a.rarity) - order.indexOf(b.rarity);
+                    }).map((stat) => (
+                      <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, justifyContent: 'center' }}>
+                        <Chip
+                          size="small"
+                          label={stat.rarity}
+                          clickable
+                          onClick={() => setSelectedRarity(stat.rarity.toLowerCase())}
+                          sx={{ 
+                            backgroundColor: selectedRarity === stat.rarity.toLowerCase() 
+                              ? stat.color 
+                              : selectedRarity === null 
+                                ? stat.color 
+                                : 'rgba(128, 128, 128, 0.3)',
+                            color: selectedRarity === stat.rarity.toLowerCase() || selectedRarity === null
+                              ? (stat.rarity === 'Legendary' ? 'black' : 'white')
+                              : 'text.secondary',
+                            minWidth: '70px',
+                            cursor: 'pointer',
+                            opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: stat.color,
+                              color: stat.rarity === 'Legendary' ? 'black' : 'white',
+                              opacity: 1,
+                              transform: 'scale(1.05)',
+                            }
+                          }}
+                        />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                            transition: 'opacity 0.2s ease'
+                          }}
+                        >
+                          {stat.count}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                  
+                  {/* Row 3: Epic and Legendary */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
+                    {getRarityStats().filter(stat => ['Epic', 'Legendary'].includes(stat.rarity)).sort((a, b) => {
+                      const order = ['Epic', 'Legendary'];
+                      return order.indexOf(a.rarity) - order.indexOf(b.rarity);
+                    }).map((stat) => (
+                      <Box key={stat.rarity} sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, justifyContent: 'center' }}>
+                        <Chip
+                          size="small"
+                          label={stat.rarity}
+                          clickable
+                          onClick={() => setSelectedRarity(stat.rarity.toLowerCase())}
+                          sx={{ 
+                            backgroundColor: selectedRarity === stat.rarity.toLowerCase() 
+                              ? stat.color 
+                              : selectedRarity === null 
+                                ? stat.color 
+                                : 'rgba(128, 128, 128, 0.3)',
+                            color: selectedRarity === stat.rarity.toLowerCase() || selectedRarity === null
+                              ? (stat.rarity === 'Legendary' ? 'black' : 'white')
+                              : 'text.secondary',
+                            minWidth: '70px',
+                            cursor: 'pointer',
+                            opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: stat.color,
+                              color: stat.rarity === 'Legendary' ? 'black' : 'white',
+                              opacity: 1,
+                              transform: 'scale(1.05)',
+                            }
+                          }}
+                        />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            opacity: selectedRarity === null || selectedRarity === stat.rarity.toLowerCase() ? 1 : 0.5,
+                            transition: 'opacity 0.2s ease'
+                          }}
+                        >
+                          {stat.count}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
                 </Box>
               </CardContent>
             </Card>

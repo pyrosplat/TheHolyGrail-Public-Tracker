@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import {
   Box,
@@ -30,8 +30,14 @@ import {
   ContentCopy as CopyIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
+  Settings as SettingsIcon,
+  Person as PersonIcon,
+  List as ListIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material'
 import ClientOnly from '@/components/ClientOnly'
+import Link from 'next/link'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface ApiKey {
   id: string
@@ -42,6 +48,7 @@ interface ApiKey {
 }
 
 export default function DashboardPage() {
+  const { mode } = useTheme()
   const { data: session, status } = useSession()
   const router = useRouter()
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
@@ -179,6 +186,57 @@ export default function DashboardPage() {
           </Typography>
         </Box>
 
+        {/* Quick Navigation */}
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}>
+              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                <Link href={`/player/${session.user.username}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <PersonIcon sx={{ fontSize: 48, mb: 2, color: 'primary.main' }} />
+                  <Typography variant="h6" gutterBottom>
+                    My Profile
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    View your public profile and grail progress
+                  </Typography>
+                </Link>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}>
+              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                <Link href={`/player/${session.user.username}/items`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <ListIcon sx={{ fontSize: 48, mb: 2, color: 'primary.main' }} />
+                  <Typography variant="h6" gutterBottom>
+                    My Items
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Browse your found and missing items
+                  </Typography>
+                </Link>
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          <Grid item xs={12} sm={4}>
+            <Card sx={{ height: '100%', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}>
+              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                <Link href="/settings" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <SettingsIcon sx={{ fontSize: 48, mb: 2, color: 'primary.main' }} />
+                  <Typography variant="h6" gutterBottom>
+                    Settings
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Manage your account and preferences
+                  </Typography>
+                </Link>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
         {error && (
           <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
             {error}
@@ -204,6 +262,9 @@ export default function DashboardPage() {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => setCreateDialog(true)}
+                    sx={{
+                      color: mode === 'dark' ? '#ffffff' : 'inherit'
+                    }}
                   >
                     Create API Key
                   </Button>
@@ -319,6 +380,19 @@ export default function DashboardPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Sign Out Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={() => signOut({ callbackUrl: '/' })}
+            sx={{ px: 3 }}
+          >
+            Sign Out
+          </Button>
+        </Box>
 
         {/* Create API Key Dialog */}
         <Dialog open={createDialog} onClose={() => setCreateDialog(false)} maxWidth="sm" fullWidth>

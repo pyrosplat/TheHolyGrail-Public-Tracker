@@ -56,21 +56,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
               Achievements
             </Button>
             
-            {/* Theme Toggle */}
-            <IconButton
-              onClick={toggleTheme}
-              color="inherit"
-              aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
-              sx={{ ml: 1 }}
-            >
-              {mode === 'dark' ? <LightMode /> : <DarkMode />}
-            </IconButton>
-            
             {session ? (
               <>
                 <Button color="inherit" component={Link} href="/dashboard">
                   Dashboard
                 </Button>
+                
+                {/* Theme Toggle */}
+                <IconButton
+                  onClick={toggleTheme}
+                  color="inherit"
+                  aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                  sx={{ ml: 1 }}
+                >
+                  {mode === 'dark' ? <LightMode /> : <DarkMode />}
+                </IconButton>
+                
                 <IconButton
                   size="large"
                   aria-label="account of current user"
@@ -108,6 +109,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   <MenuItem onClick={handleClose} component={Link} href="/dashboard">
                     Dashboard
                   </MenuItem>
+                  <MenuItem onClick={handleClose} component={Link} href={`/player/${session.user.username}/items`}>
+                    My Items
+                  </MenuItem>
                   <MenuItem onClick={handleClose} component={Link} href={`/player/${session.user.username}`}>
                     My Profile
                   </MenuItem>
@@ -120,13 +124,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </Menu>
               </>
             ) : (
-              <Box sx={{ display: 'flex', gap: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 <Button color="inherit" component={Link} href="/auth/signin" size="small">
                   Sign In
                 </Button>
                 <Button variant="outlined" color="inherit" component={Link} href="/auth/signup" size="small">
                   Sign Up
                 </Button>
+                
+                {/* Theme Toggle */}
+                <IconButton
+                  onClick={toggleTheme}
+                  color="inherit"
+                  aria-label={`Switch to ${mode === 'dark' ? 'light' : 'dark'} mode`}
+                  sx={{ ml: 1 }}
+                >
+                  {mode === 'dark' ? <LightMode /> : <DarkMode />}
+                </IconButton>
               </Box>
             )}
           </Box>

@@ -20,7 +20,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
   palette: {
     mode,
     primary: {
-      main: '#ff9800', // Orange - matching progress bars
+      main: '#CC5F43', // Orange - matching progress bars
       light: '#ffb74d',
       dark: '#f57c00',
       contrastText: mode === 'dark' ? '#000000' : '#000000',
@@ -45,7 +45,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       dark: '#388e3c',
     },
     warning: {
-      main: '#ff9800',
+      main: '#CC5F43',
       light: '#ffb74d',
       dark: '#f57c00',
     },
@@ -71,7 +71,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       fontFamily: '"Exocet Heavy", "D2Runes", "Roboto", sans-serif',
       fontWeight: 700,
       fontSize: '2.5rem',
-      color: mode === 'dark' ? '#ff9800' : '#000000',
+      color: mode === 'dark' ? '#CC5F43' : '#000000',
       textShadow: mode === 'dark' ? '2px 2px 4px rgba(0,0,0,0.8)' : '1px 1px 2px rgba(0,0,0,0.3)',
       letterSpacing: '0.02em',
     },
@@ -79,7 +79,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       fontFamily: '"Exocet Heavy", "D2Runes", "Roboto", sans-serif',
       fontWeight: 700,
       fontSize: '2rem',
-      color: mode === 'dark' ? '#ff9800' : '#000000',
+      color: mode === 'dark' ? '#CC5F43' : '#000000',
       textShadow: mode === 'dark' ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 1px rgba(0,0,0,0.3)',
       letterSpacing: '0.02em',
     },
@@ -87,7 +87,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       fontFamily: '"Exocet Heavy", "D2Runes", "Roboto", sans-serif',
       fontWeight: 600,
       fontSize: '1.5rem',
-      color: mode === 'dark' ? '#ff9800' : '#000000',
+      color: mode === 'dark' ? '#CC5F43' : '#000000',
       letterSpacing: '0.02em',
     },
     h4: {
@@ -122,14 +122,14 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       fontFamily: '"Exocet Heavy", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif',
       fontWeight: 700,
       letterSpacing: '0.02em',
-      color: mode === 'dark' ? '#ff9800' : '#000000',
+      color: mode === 'dark' ? '#CC5F43' : '#000000',
       textShadow: mode === 'dark' ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 1px rgba(0,0,0,0.3)',
     },
     runes: {
       fontFamily: '"D2Runes", "Exocet Heavy", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif',
       fontWeight: 'normal',
       letterSpacing: '0.02em',
-      color: mode === 'dark' ? '#ff9800' : '#000000',
+      color: mode === 'dark' ? '#CC5F43' : '#000000',
     },
   },
   components: {
@@ -137,7 +137,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
       styleOverrides: {
         root: {
           backgroundColor: mode === 'dark' ? '#1a1a1a' : '#ffffff',
-          borderBottom: '2px solid #ff9800',
+          borderBottom: '2px solid #CC5F43',
           color: mode === 'dark' ? '#ffffff' : '#212121',
         },
       },
@@ -155,7 +155,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
     MuiButton: {
       styleOverrides: {
         contained: {
-          backgroundColor: mode === 'dark' ? '#ff9800' : '#000000',
+          backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000',
           color: mode === 'dark' ? '#000000' : '#ffffff',
           fontWeight: 600,
           '&:hover': {
@@ -164,8 +164,8 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
           },
         },
         outlined: {
-          borderColor: mode === 'dark' ? '#ff9800' : '#000000',
-          color: mode === 'dark' ? '#ff9800' : '#000000',
+          borderColor: mode === 'dark' ? '#CC5F43' : '#000000',
+          color: mode === 'dark' ? '#CC5F43' : '#000000',
           '&:hover': {
             borderColor: mode === 'dark' ? '#ffb74d' : '#333333',
             backgroundColor: mode === 'dark' ? 'rgba(255,152,0,0.1)' : 'rgba(0,0,0,0.1)',
@@ -191,7 +191,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
             color: '#ffffff',
           },
           '&.achievement-legendary': {
-            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000',
+            backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000',
             color: mode === 'dark' ? '#000000' : '#ffffff',
           },
         },
@@ -204,7 +204,7 @@ export const createAppTheme = (mode: PaletteMode) => createTheme({
           borderRadius: 4,
         },
         bar: {
-          backgroundColor: mode === 'dark' ? '#ff9800' : '#000000',
+          backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000',
           borderRadius: 4,
         },
       },

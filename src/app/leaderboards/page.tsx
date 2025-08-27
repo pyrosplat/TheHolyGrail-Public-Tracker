@@ -36,6 +36,7 @@ import {
   Whatshot as FireIcon,
 } from '@mui/icons-material'
 import Link from 'next/link'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface LeaderboardEntry {
   rank: number
@@ -93,6 +94,7 @@ const categories = [
 ]
 
 export default function LeaderboardsPage() {
+  const { mode } = useTheme()
   const [activeTab, setActiveTab] = useState(0)
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -218,7 +220,7 @@ export default function LeaderboardsPage() {
 
   return (
     <Box>
-      <Typography variant="h2" gutterBottom textAlign="center">
+      <Typography variant="h2" gutterBottom textAlign="center" sx={{ color: mode === 'dark' ? '#ffffff' : 'inherit' }}>
         Leaderboards
       </Typography>
       <Typography variant="body1" color="text.secondary" textAlign="center" mb={4}>

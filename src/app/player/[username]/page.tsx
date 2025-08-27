@@ -193,7 +193,7 @@ export default function PlayerProfilePage() {
               {player.displayName?.[0]?.toUpperCase() || player.username[0]?.toUpperCase()}
             </Avatar>
             <Box flex={1}>
-              <Typography variant="h3" gutterBottom>
+              <Typography variant="h3" gutterBottom sx={{ color: mode === 'dark' ? '#ffffff' : 'inherit' }}>
                 {player.displayName || player.username}
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
@@ -329,7 +329,7 @@ export default function PlayerProfilePage() {
                     value={grailProgress.overallCompletion}
                     text={`${grailProgress.overallCompletion.toFixed(1)}%`}
                     styles={buildStyles({
-                      pathColor: mode === 'dark' ? '#ff9800' : '#000000',
+                      pathColor: mode === 'dark' ? '#CC5F43' : '#000000',
                       textColor: mode === 'dark' ? '#ffffff' : '#000000',
                       trailColor: mode === 'dark' ? '#333' : '#e0e0e0',
                       textSize: '16px',
@@ -354,7 +354,7 @@ export default function PlayerProfilePage() {
                           height: 8, 
                           borderRadius: 4,
                           '& .MuiLinearProgress-bar': {
-                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
+                            backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000'
                           }
                         }}
                       />
@@ -382,7 +382,7 @@ export default function PlayerProfilePage() {
                           height: 8, 
                           borderRadius: 4,
                           '& .MuiLinearProgress-bar': {
-                            backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
+                            backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000'
                           }
                         }}
                       />
@@ -411,7 +411,7 @@ export default function PlayerProfilePage() {
                             height: 8, 
                             borderRadius: 4,
                             '& .MuiLinearProgress-bar': {
-                              backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
+                              backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000'
                             }
                           }}
                         />
@@ -441,7 +441,7 @@ export default function PlayerProfilePage() {
                             height: 8, 
                             borderRadius: 4,
                             '& .MuiLinearProgress-bar': {
-                              backgroundColor: mode === 'dark' ? '#ff9800' : '#000000'
+                              backgroundColor: mode === 'dark' ? '#CC5F43' : '#000000'
                             }
                           }}
                         />

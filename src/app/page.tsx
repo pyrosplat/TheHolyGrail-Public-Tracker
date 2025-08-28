@@ -359,6 +359,22 @@ export default function HomePage() {
           </Grid>
         </CardContent>
       </Card>
+
+      {/* GitHub Link for Issues */}
+      <Box sx={{ mt: 4, textAlign: 'center', py: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Found a bug or have a suggestion?
+        </Typography>
+        <Button
+          variant="text"
+          href="https://github.com/pyrosplat/TheHolyGrail-Public-Tracker"
+          target="_blank"
+          rel="noopener noreferrer"
+          sx={{ textDecoration: 'underline' }}
+        >
+          Report an Issue on GitHub
+        </Button>
+      </Box>
     </Box>
   )
 }

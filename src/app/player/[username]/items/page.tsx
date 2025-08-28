@@ -26,6 +26,10 @@ import {
   Search as SearchIcon
 } from '@mui/icons-material'
 import { useTheme } from '@/contexts/ThemeContext'
+import { categorizeItem, getItemInfo, cleanItemName, itemMappings } from '@/lib/itemMappings'
+import { runesMapping, reverseRunesMap } from '@/lib/runesMapping'
+import { runewordsMapping } from '@/lib/runewordsMapping'
+import { silospenMapping } from '@/lib/silospenMapping'
 
 interface PlayerData {
   id: string
@@ -52,6 +56,7 @@ interface ItemData {
   found: boolean
   type?: string
   key?: string
+  subCategory?: string
 }
 
 interface ItemsData {
@@ -62,23 +67,24 @@ interface ItemsData {
   grailType: string
   includeRunes: boolean
   includeRunewords: boolean
-  actualItems?: {
+  rawItems: {
     items: any
     ethItems: any
     runes: any
     runewords: any
   }
-  categorizedItems?: {
-    uniqueArmor: any[]
-    uniqueWeapons: any[]
-    uniqueOther: any[]
-    sets: any[]
-    ethUniqueArmor: any[]
-    ethUniqueWeapons: any[]
-    ethUniqueOther: any[]
-    runes: any[]
-    runewords: any[]
-  }
+}
+
+interface CategorizedItems {
+  uniqueArmor: ItemData[]
+  uniqueWeapons: ItemData[]
+  uniqueOther: ItemData[]
+  sets: ItemData[]
+  ethUniqueArmor: ItemData[]
+  ethUniqueWeapons: ItemData[]
+  ethUniqueOther: ItemData[]
+  runes: ItemData[]
+  runewords: ItemData[]
 }
 
 export default function PlayerItemsPage() {
@@ -87,11 +93,11 @@ export default function PlayerItemsPage() {
   const username = params.username as string
   const [player, setPlayer] = useState<PlayerData | null>(null)
   const [itemsData, setItemsData] = useState<ItemsData | null>(null)
+  const [categorizedItems, setCategorizedItems] = useState<CategorizedItems | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [showMissingItems, setShowMissingItems] = useState(false)
-  const [sortBy, setSortBy] = useState<'itemCode' | 'alphabetical'>('itemCode')
 
   useEffect(() => {
     fetchPlayerAndItems()
@@ -117,7 +123,12 @@ export default function PlayerItemsPage() {
       const itemsResponseData = await itemsResponse.json()
       
       if (itemsResponse.ok) {
-        setItemsData(itemsResponseData.data)
+        const data = itemsResponseData.data
+        setItemsData(data)
+        
+        // Perform client-side categorization
+        const categorized = categorizeRawItems(data.rawItems)
+        setCategorizedItems(categorized)
       } else {
         console.error('Failed to load items:', itemsResponseData.error)
         setError(itemsResponseData.error || 'Failed to load items data')
@@ -132,37 +143,445 @@ export default function PlayerItemsPage() {
     }
   }
 
-  // Helper function to clean up item names
-  const cleanItemName = (name: string): string => {
-    return name.replace(/([a-z])([A-Z])/g, '$1 $2')
-      .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ')
-      .replace(/([a-z])'([A-Z])/g, '$1\'$2')
-      .replace(/\bOf\b/g, 'of')
-      .replace(/\bThe\b/g, 'the')
-      .replace(/\bAnd\b/g, 'and')
-      .trim()
+  // Helper function to detect set items using desktop client mapping
+  const isSetItem = (key: string): boolean => {
+    // First check if it's explicitly a unique item that should never be a set
+    const uniqueItems = [
+      'thecatseye', 'tyraelsmight', 'verdungosheartycord', 'thereaperstoll', 
+      'blackhornsface', 'naturespeace', 'gheedsfortune', 'credendum'
+    ];
+    
+    // Also exclude all Immortal King items (they're uniques, not sets)
+    const keyLower = key.toLowerCase();
+    if (uniqueItems.includes(keyLower) || keyLower.includes('immortalking')) {
+      return false;
+    }
+    
+    // Check if the item is in silospenMapping and has a set-like name
+    const displayName = silospenMapping[keyLower]
+    if (displayName) {
+      const nameLower = displayName.toLowerCase()
+      // Only check for specific set name patterns, not generic possessives
+      const setPatterns = [
+        "aldur's", "angelic", "arctic gear", "berserker", "bul-kathos'", 
+        "cathan's", "civerb's", "cleglaw's", "cow king's", "death's disguise", 
+        "griswold's", "hsarus'", "hwanin's", "infernal tools", "iratha's", 
+        "isenhart's", "m'avina's", "milabrega's", "naj's", "natalya's", 
+        "orphan's", "sander's", "sazabi's", "sigon's", "tal rasha's", 
+        "tancred's", "trang-oul's", "vidala's"
+      ]
+      return setPatterns.some(pattern => nameLower.includes(pattern))
+    }
+    
+    // Fallback to key-based detection
+    const setKeyPatterns = [
+      'aldur', 'angelic', 'arctic', 'berserker', 'bulkathos', 'cathan', 
+      'civerb', 'cleglaw', 'cow', 'griswold', 'hsarus',
+      'hwanin', 'infernal', 'iratha', 'isenhart', 
+      'mavina', 'milabrega', 'naj', 'natalya', 'orphan', 'sander', 
+      'sazabi', 'sigon', 'tal', 'tancred', 'trang', 'vidala'
+    ]
+    return setKeyPatterns.some(pattern => keyLower.includes(pattern))
   }
 
+  // Helper function to detect runes using desktop client mapping
+  const isRune = (key: string): boolean => {
+    const keyLower = key.toLowerCase()
+    
+    // Check if it's in the reverse runes map (rune name to ID)
+    if (reverseRunesMap[keyLower]) {
+      return true
+    }
+    
+    // Check if it's a rune ID (r01, r02, etc) in the runesMapping
+    if (runesMapping[key as any]) {
+      return true
+    }
+    
+    // Check if it's in the silospenMapping and matches a rune name
+    const displayName = silospenMapping[keyLower]
+    if (displayName) {
+      const displayLower = displayName.toLowerCase()
+      if (reverseRunesMap[displayLower]) {
+        return true
+      }
+      
+      // Check if it matches any rune name in runesMapping
+      for (const runeId in runesMapping) {
+        if (runesMapping[runeId].name.toLowerCase() === displayLower) {
+          return true
+        }
+      }
+    }
+    
+    return false
+  }
+
+  // Helper function to detect runewords using desktop client mapping
+  const isRuneword = (key: string): boolean => {
+    // Check if the key exists in the runewords mapping (exact match)
+    if (runewordsMapping[key]) {
+      return true
+    }
+    
+    const keyLower = key.toLowerCase()
+    
+    // Check for runeword prefix pattern (runewordblack, runewordinsight, etc.)
+    if (keyLower.startsWith('runeword')) {
+      const runewordName = keyLower.replace(/^runeword/, '') // Remove "runeword" prefix
+      
+      // Check if the remaining part matches any runeword name
+      for (const mappingName in runewordsMapping) {
+        // Direct match
+        if (mappingName.toLowerCase() === runewordName) {
+          return true
+        }
+        
+        // Match with spaces and special characters removed
+        const normalizedMappingName = mappingName.toLowerCase().replace(/[\s\-']/g, '')
+        if (normalizedMappingName === runewordName) {
+          return true
+        }
+      }
+    }
+    
+    // Check case-insensitive match
+    for (const runewordName in runewordsMapping) {
+      if (runewordName.toLowerCase() === keyLower) {
+        return true
+      }
+    }
+    
+    // Check if it's in the silospenMapping and looks like a runeword
+    const displayName = silospenMapping[keyLower]
+    if (displayName) {
+      // Check if this display name matches any runeword name
+      for (const runewordName in runewordsMapping) {
+        if (runewordsMapping[runewordName].name.toLowerCase() === displayName.toLowerCase()) {
+          return true
+        }
+      }
+    }
+    
+    return false
+  }
+
+  // Helper function to get all possible items for a category
+  const getAllPossibleItemsForCategory = (categoryName: string): ItemData[] => {
+    const items: ItemData[] = []
+    
+    switch (categoryName) {
+      case 'Unique Weapons':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'weapons') {
+            items.push({
+              key,
+              name: silospenMapping[key] || itemInfo.name,
+              found: false, // Will be updated later
+              type: 'weapon',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+        
+      case 'Unique Armor':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'armor') {
+            items.push({
+              key,
+              name: silospenMapping[key] || itemInfo.name,
+              found: false,
+              type: 'armor',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+        
+      case 'Unique Other':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'other') {
+            items.push({
+              key,
+              name: silospenMapping[key] || itemInfo.name,
+              found: false,
+              type: 'other',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+        
+      case 'Sets':
+        // Add all set items from silospenMapping that match set patterns
+        Object.entries(silospenMapping).forEach(([key, displayName]) => {
+          if (isSetItem(key)) {
+            items.push({
+              key,
+              name: displayName,
+              found: false,
+              type: 'set',
+              subCategory: 'Sets'
+            })
+          }
+        })
+        break
+        
+      case 'Runes':
+        Object.entries(runesMapping).forEach(([runeId, runeInfo]) => {
+          items.push({
+            key: runeId,
+            name: runeInfo.name,
+            found: false,
+            type: 'rune',
+            subCategory: 'Runes'
+          })
+        })
+        break
+        
+      case 'Runewords':
+        Object.entries(runewordsMapping).forEach(([runewordName, runewordInfo]) => {
+          items.push({
+            key: runewordName.toLowerCase(),
+            name: runewordInfo.name,
+            found: false,
+            type: 'runeword',
+            subCategory: 'Runewords'
+          })
+        })
+        break
+        
+      // Handle ethereal categories
+      case 'Ethereal Unique Weapons':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'weapons') {
+            items.push({
+              key: `eth_${key}`,
+              name: `${silospenMapping[key] || itemInfo.name} (Ethereal)`,
+              found: false,
+              type: 'ethweapon',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+        
+      case 'Ethereal Unique Armor':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'armor') {
+            items.push({
+              key: `eth_${key}`,
+              name: `${silospenMapping[key] || itemInfo.name} (Ethereal)`,
+              found: false,
+              type: 'etharmor',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+        
+      case 'Ethereal Unique Other':
+        Object.entries(itemMappings).forEach(([key, itemInfo]) => {
+          if (itemInfo.category === 'other') {
+            items.push({
+              key: `eth_${key}`,
+              name: `${silospenMapping[key] || itemInfo.name} (Ethereal)`,
+              found: false,
+              type: 'ethother',
+              subCategory: itemInfo.subCategory
+            })
+          }
+        })
+        break
+    }
+    
+    return items
+  }
+
+  // Client-side categorization function
+  const categorizeRawItems = (rawItems: any): CategorizedItems => {
+    const result: CategorizedItems = {
+      uniqueArmor: [],
+      uniqueWeapons: [],
+      uniqueOther: [],
+      sets: [],
+      ethUniqueArmor: [],
+      ethUniqueWeapons: [],
+      ethUniqueOther: [],
+      runes: [],
+      runewords: []
+    }
+
+    // Process regular items
+    if (rawItems.items) {
+      Object.entries(rawItems.items).forEach(([key, item]: [string, any]) => {
+        // Skip runes and runewords - they should only be processed from their dedicated sections
+        if (isRune(key) || isRuneword(key)) {
+          return
+        }
+        
+        // First check if it's a set item
+        if (isSetItem(key)) {
+          let displayName = cleanItemName(key)
+          
+          // Try to get name from desktop client mapping
+          if (silospenMapping[key.toLowerCase()]) {
+            displayName = silospenMapping[key.toLowerCase()]
+          }
+          
+          result.sets.push({
+            key,
+            name: displayName,
+            found: true,
+            type: 'set',
+            subCategory: 'Sets'
+          })
+          return
+        }
+        
+        // Then use our categorization logic for unique items
+        const categorized = categorizeItem(key, false)
+        const itemData: ItemData = {
+          key,
+          name: categorized.displayName,
+          found: true,
+          type: categorized.category,
+          subCategory: categorized.subCategory
+        }
+        
+        if (categorized.category === 'armor') {
+          result.uniqueArmor.push(itemData)
+        } else if (categorized.category === 'weapons') {
+          result.uniqueWeapons.push(itemData)
+        } else {
+          // Debug: Log items going to "Unique Other" to identify misplaced items
+          console.warn(`Item "${key}" (${categorized.displayName}) categorized as "other"`)
+          result.uniqueOther.push(itemData)
+        }
+      })
+    }
+
+    // Process ethereal items (only unique items can be ethereal, not sets)
+    if (rawItems.ethItems) {
+      Object.entries(rawItems.ethItems).forEach(([key, item]: [string, any]) => {
+        // Skip runes and runewords - they should only be processed from their dedicated sections
+        if (isRune(key) || isRuneword(key)) {
+          return
+        }
+        
+        const categorized = categorizeItem(key, true)
+        const itemData: ItemData = {
+          key,
+          name: categorized.displayName,
+          found: true,
+          type: categorized.category,
+          subCategory: categorized.subCategory
+        }
+        
+        if (categorized.category === 'etharmor') {
+          result.ethUniqueArmor.push(itemData)
+        } else if (categorized.category === 'ethweapons') {
+          result.ethUniqueWeapons.push(itemData)
+        } else {
+          result.ethUniqueOther.push(itemData)
+        }
+      })
+    }
+
+    // Process runes using desktop client mapping
+    if (rawItems.runes) {
+      Object.entries(rawItems.runes).forEach(([key, rune]: [string, any]) => {
+        let displayName = cleanItemName(key)
+        let standardizedKey = key
+        
+        // Try to get name from desktop client mapping
+        const runeId = reverseRunesMap[key.toLowerCase()]
+        if (runeId && runesMapping[runeId]) {
+          displayName = runesMapping[runeId].name
+          standardizedKey = runeId // Use the standardized rune ID (r01, r02, etc.)
+        } else if (runesMapping[key as any]) {
+          displayName = runesMapping[key as any].name
+          standardizedKey = key // Already in correct format
+        }
+        
+        result.runes.push({
+          key: standardizedKey,
+          name: displayName,
+          found: true,
+          type: 'rune',
+          subCategory: 'Runes'
+        })
+      })
+    }
+
+    // Process runewords using desktop client mapping
+    if (rawItems.runewords) {
+      Object.entries(rawItems.runewords).forEach(([key, runeword]: [string, any]) => {
+        let displayName = cleanItemName(key)
+        
+        // Try to get name from desktop client mapping
+        if (runewordsMapping[key]) {
+          displayName = runewordsMapping[key].name
+        } else {
+          // Handle runeword prefix pattern (runewordblack -> Black, runewordcalltoarms -> Call to Arms, etc.)
+          const keyLower = key.toLowerCase()
+          if (keyLower.startsWith('runeword')) {
+            const runewordName = keyLower.replace(/^runeword/, '')
+            
+            // Find matching runeword by name
+            for (const mappingName in runewordsMapping) {
+              // Direct match
+              if (mappingName.toLowerCase() === runewordName) {
+                displayName = runewordsMapping[mappingName].name
+                break
+              }
+              
+              // Match with spaces and special characters removed (calltoarms -> Call to Arms)
+              const normalizedMappingName = mappingName.toLowerCase().replace(/[\s\-']/g, '')
+              if (normalizedMappingName === runewordName) {
+                displayName = runewordsMapping[mappingName].name
+                break
+              }
+            }
+          }
+        }
+        
+        result.runewords.push({
+          key,
+          name: displayName,
+          found: true,
+          type: 'runeword',
+          subCategory: 'Runewords'
+        })
+      })
+    }
+
+    return result
+  }
+
+  // Use the helper function from itemMappings for consistent item name cleaning
+
+
   const processItemsForCategory = (categoryName: string): ItemData[] => {
-    if (!itemsData?.categorizedItems) return []
+    if (!categorizedItems || !itemsData) return []
 
     const items: ItemData[] = []
-    const { categorizedItems } = itemsData
     
-    // Get the category info to determine missing items count
+    // Get the category info - trust server-side counts completely
     const categoryInfo = itemsData.categories.find(cat => cat.name === categoryName)
+    if (!categoryInfo) return []
 
     // Use the server-side categorization directly
     switch (categoryName) {
       case 'Unique Armor':
         categorizedItems.uniqueArmor.forEach(item => {
           items.push({
-            name: cleanItemName(item.name),
+            name: item.name, // Already properly formatted from categorization
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -170,10 +589,11 @@ export default function PlayerItemsPage() {
       case 'Unique Weapons':
         categorizedItems.uniqueWeapons.forEach(item => {
           items.push({
-            name: cleanItemName(item.name),
+            name: item.name, // Already properly formatted from categorization
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -181,10 +601,11 @@ export default function PlayerItemsPage() {
       case 'Unique Other':
         categorizedItems.uniqueOther.forEach(item => {
           items.push({
-            name: cleanItemName(item.name),
+            name: item.name, // Already properly formatted from categorization
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -192,10 +613,11 @@ export default function PlayerItemsPage() {
       case 'Sets':
         categorizedItems.sets.forEach(item => {
           items.push({
-            name: cleanItemName(item.name),
+            name: item.name, // Already properly formatted from categorization
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -203,10 +625,11 @@ export default function PlayerItemsPage() {
       case 'Ethereal Unique Armor':
         categorizedItems.ethUniqueArmor.forEach(item => {
           items.push({
-            name: `${cleanItemName(item.name)} (Ethereal)`,
+            name: `${item.name} (Ethereal)`, // Already properly formatted
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -214,10 +637,11 @@ export default function PlayerItemsPage() {
       case 'Ethereal Unique Weapons':
         categorizedItems.ethUniqueWeapons.forEach(item => {
           items.push({
-            name: `${cleanItemName(item.name)} (Ethereal)`,
+            name: `${item.name} (Ethereal)`, // Already properly formatted
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -225,10 +649,11 @@ export default function PlayerItemsPage() {
       case 'Ethereal Unique Other':
         categorizedItems.ethUniqueOther.forEach(item => {
           items.push({
-            name: `${cleanItemName(item.name)} (Ethereal)`,
+            name: `${item.name} (Ethereal)`, // Already properly formatted
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -236,22 +661,23 @@ export default function PlayerItemsPage() {
       case 'Runes':
         categorizedItems.runes.forEach(item => {
           items.push({
-            name: cleanItemName(item.name),
+            name: item.name, // Already properly formatted from categorization
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
 
       case 'Runewords':
         categorizedItems.runewords.forEach(item => {
-          const cleanName = cleanItemName(item.name).replace(/^Runeword\s*/i, '').trim()
           items.push({
-            name: cleanName,
+            name: item.name.replace(/^Runeword\s*/i, '').trim(), // Remove runeword prefix if present
             found: true,
             type: item.type,
-            key: item.key
+            key: item.key,
+            subCategory: item.subCategory
           })
         })
         break
@@ -260,59 +686,84 @@ export default function PlayerItemsPage() {
         break
     }
 
-    // Add placeholder missing items if toggle is enabled
-    if (showMissingItems && categoryInfo) {
-      const missingCount = categoryInfo.exists - categoryInfo.owned
-      for (let i = 0; i < missingCount; i++) {
-        items.push({
-          name: `Missing Item ${i + 1}`,
-          found: false,
-          type: 'unknown'
+    // Add actual missing items if toggle is enabled
+    if (showMissingItems) {
+      // Get all possible items for this category
+      const allPossibleItems = getAllPossibleItemsForCategory(categoryName)
+      
+      // Create comprehensive sets for found item matching
+      const foundItemKeys = new Set(items.map(item => (item as any).key).filter(Boolean))
+      const foundItemNames = new Set(items.map(item => item.name.toLowerCase()))
+      
+      // Add missing items with their actual names
+      allPossibleItems.forEach(possibleItem => {
+        // Check multiple ways the item might be identified
+        const isFoundByKey = possibleItem.key && foundItemKeys.has(possibleItem.key)
+        const isFoundByName = foundItemNames.has(possibleItem.name.toLowerCase())
+        const isFoundBySimilarName = items.some(item => {
+          // Remove common variations like (Ethereal) suffix for comparison
+          const cleanFoundName = item.name.replace(/\s*\(Ethereal\)\s*$/i, '').toLowerCase()
+          const cleanPossibleName = possibleItem.name.replace(/\s*\(Ethereal\)\s*$/i, '').toLowerCase()
+          return cleanFoundName === cleanPossibleName
         })
+        
+        const isFound = isFoundByKey || isFoundByName || isFoundBySimilarName
+        
+        if (!isFound) {
+          items.push({
+            ...possibleItem,
+            found: false
+          })
+        }
+      })
+      
+      // Debug: Log when client-side count doesn't match server-side count
+      const clientFoundCount = items.filter(item => item.found).length
+      if (clientFoundCount !== categoryInfo.owned) {
+        console.warn(`Count mismatch for ${categoryName}: Client found ${clientFoundCount}, Server reports ${categoryInfo.owned}`)
+        console.warn('Client found items:', items.filter(item => item.found).map(item => item.name))
       }
     }
 
-    // Apply search filter
+    // Apply search filter and subcategory filter
     let filteredItems = items
     if (searchTerm) {
-      filteredItems = items.filter(item => 
+      filteredItems = filteredItems.filter(item => 
         item.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
-    // Sort items based on selected sorting method
-    console.log(`Sorting ${categoryName} with sortBy=${sortBy}, items:`, filteredItems.map(i => ({ name: i.name, key: i.key })))
-    
+    // Simple sorting: found items first, then by type-specific order
     return filteredItems.sort((a, b) => {
       // Always show found items first
       if (a.found !== b.found) {
         return a.found ? -1 : 1
       }
       
-      if (sortBy === 'alphabetical') {
-        // Alphabetical sorting by name
-        return a.name.localeCompare(b.name)
-      } else {
-        // Item code sorting (default)
+      // Special sorting for runes: by rune number instead of alphabetical
+      if (a.type === 'rune' && b.type === 'rune') {
+        const runeIdA = a.key || ''
+        const runeIdB = b.key || ''
         
-        // For runes, always sort by key if available (r01, r02, r03, etc.)
-        if (categoryName === 'Runes' && a.key && b.key) {
-          return a.key.localeCompare(b.key, undefined, { numeric: true })
+        // Extract numeric part from rune IDs (r01, r02, etc.) for proper numeric sorting
+        const getRuneNumber = (runeId: string) => {
+          const match = runeId.match(/r(\d+)/)
+          return match ? parseInt(match[1], 10) : 0
         }
         
-        // For all other categories, sort by item key if available, otherwise by name
-        if (a.key && b.key) {
-          return a.key.localeCompare(b.key, undefined, { numeric: true })
-        }
+        const numA = getRuneNumber(runeIdA)
+        const numB = getRuneNumber(runeIdB)
         
-        // Fallback to alphabetical if no keys
-        return a.name.localeCompare(b.name)
+        return numA - numB
       }
+      
+      // Then alphabetical by name for other items
+      return a.name.localeCompare(b.name)
     })
   }
 
 
-  if (!itemsData) {
+  if (!itemsData || !categorizedItems) {
     return null // Will be handled by loading/error states below
   }
 
@@ -413,17 +864,6 @@ export default function PlayerItemsPage() {
                 ),
               }}
             />
-            <FormControl size="small" sx={{ minWidth: '160px' }}>
-              <InputLabel>Sort By</InputLabel>
-              <Select
-                value={sortBy}
-                label="Sort By"
-                onChange={(e) => setSortBy(e.target.value as 'itemCode' | 'alphabetical')}
-              >
-                <MenuItem value="itemCode">Item Code</MenuItem>
-                <MenuItem value="alphabetical">Alphabetical</MenuItem>
-              </Select>
-            </FormControl>
             <FormControlLabel
               control={
                 <Switch
@@ -504,7 +944,7 @@ export default function PlayerItemsPage() {
                           <Typography variant="body2" color="text.secondary">
                             {searchTerm && `Search results: ${items.length} items found`}
                             {searchTerm && showMissingItems && ' • '}
-                            {showMissingItems && `Found: ${foundItems.length}, Missing: ${missingItems.length}`}
+                            {showMissingItems && `Found: ${category.owned}, Missing: ${category.exists - category.owned} (Server counts)`}
                           </Typography>
                         </Box>
                       )}
@@ -515,8 +955,6 @@ export default function PlayerItemsPage() {
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                         gap: 1,
-                        maxHeight: '300px',
-                        overflow: 'auto',
                         border: `1px solid ${mode === 'dark' ? '#333' : '#ddd'}`,
                         borderRadius: 1,
                         p: 1,

@@ -7,9 +7,15 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
+    console.log('Profile API: session check', { 
+      hasSession: !!session, 
+      userId: session?.user?.id 
+    })
+    
     if (!session?.user?.id) {
+      console.log('Profile API: No valid session')
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - please log in' },
         { status: 401 }
       )
     }
@@ -34,13 +40,20 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log('Profile API: Database query result', { 
+      userId: session.user.id, 
+      userFound: !!user 
+    })
+
     if (!user) {
+      console.log('Profile API: User not found in database')
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'User not found in database' },
         { status: 404 }
       )
     }
 
+    console.log('Profile API: Success, returning user data')
     return NextResponse.json({
       success: true,
       data: user
@@ -48,7 +61,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Get profile error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }

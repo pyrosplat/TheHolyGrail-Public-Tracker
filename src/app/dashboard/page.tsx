@@ -116,7 +116,7 @@ export default function DashboardPage() {
   }
 
   const deleteApiKey = async (keyId: string) => {
-    if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+    if (!confirm('Are you sure you want to delete this API key? This will also permanently delete all your grail progress and achievements. This action cannot be undone.')) {
       return
     }
 
@@ -126,7 +126,7 @@ export default function DashboardPage() {
       })
 
       if (response.ok) {
-        setSuccess('API key deleted successfully')
+        setSuccess('API key deleted and grail progress cleared successfully')
         await fetchApiKeys()
       } else {
         const data = await response.json()
@@ -262,6 +262,7 @@ export default function DashboardPage() {
                     variant="contained"
                     startIcon={<AddIcon />}
                     onClick={() => setCreateDialog(true)}
+                    disabled={apiKeys.length >= 1}
                     sx={{
                       color: '#ffffff'
                     }}
@@ -271,8 +272,32 @@ export default function DashboardPage() {
                 </Box>
                 
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Use API keys to connect your desktop application to sync grail progress.
+                  Use API keys to connect your desktop application to sync grail progress. Only one API key is allowed per account.
                 </Typography>
+
+                {apiKeys.length > 0 && (
+                  <Alert 
+                    severity="warning" 
+                    sx={{ 
+                      mb: 3,
+                      ...(mode === 'dark' && {
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)', // Semi-transparent yellow background
+                        borderColor: 'warning.main',
+                        color: 'warning.light',
+                        '& .MuiAlert-icon': {
+                          color: 'warning.main'
+                        }
+                      })
+                    }}
+                  >
+                    <Typography variant="body2">
+                      <strong>⚠️ Important:</strong> Deleting your API key will permanently clear all your grail progress, achievements, and statistics. This action cannot be undone.
+                    </Typography>
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      <strong>💡 Tip:</strong> After deleting your API key or clearing your grail, restart your desktop client to unlock the configuration settings.
+                    </Typography>
+                  </Alert>
+                )}
 
                 {apiKeys.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 4 }}>

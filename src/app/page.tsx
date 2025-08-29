@@ -17,6 +17,10 @@ import {
   ListItemText,
   ListItemAvatar,
   LinearProgress,
+  Alert,
+  CircularProgress,
+  Autocomplete,
+  Popper,
 } from '@mui/material'
 import {
   Search as SearchIcon,
@@ -47,8 +51,22 @@ interface PageStats {
   totalItems: number
 }
 
+interface SearchResult {
+  id: string
+  username: string
+  displayName?: string
+  avatarUrl?: string
+  country?: string
+  progress: {
+    overall: number
+    totalItems: number
+  }
+}
+
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [stats, setStats] = useState<PageStats | null>(null)
@@ -59,6 +77,19 @@ export default function HomePage() {
     setMounted(true)
     loadPageData()
   }, [])
+
+  // Debounced search effect
+  useEffect(() => {
+    const searchTimeout = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        searchPlayers(searchQuery.trim())
+      } else {
+        setSearchResults([])
+      }
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(searchTimeout)
+  }, [searchQuery])
 
   const loadPageData = async () => {
     try {
@@ -89,10 +120,34 @@ export default function HomePage() {
     }
   }
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      // Navigate to player profile
-      router.push(`/player/${searchQuery.trim()}`)
+  const searchPlayers = async (query: string) => {
+    setSearchLoading(true)
+    try {
+      const response = await fetch(`/api/search/players?q=${encodeURIComponent(query)}&limit=8`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setSearchResults(data.data || [])
+        }
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      setSearchResults([])
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  const handlePlayerSelect = (player: SearchResult) => {
+    router.push(`/player/${encodeURIComponent(player.username)}`)
+  }
+
+  const getRankColor = (rank: number) => {
+    switch (rank) {
+      case 1: return '#FFD700' // Gold
+      case 2: return '#C0C0C0' // Silver  
+      case 3: return '#CD7F32' // Bronze
+      default: return 'text.primary'
     }
   }
 
@@ -113,26 +168,62 @@ export default function HomePage() {
         
         {/* Search Bar */}
         <Box sx={{ maxWidth: 500, mx: 'auto', mt: 4 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search for a player..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              InputProps={{
-                startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />,
-              }}
-            />
-            <Button
-              variant="contained"
-              onClick={handleSearch}
-              disabled={!searchQuery.trim()}
-            >
-              Search
-            </Button>
-          </Box>
+          <Autocomplete
+            freeSolo
+            options={searchResults}
+            getOptionLabel={(option) => {
+              if (typeof option === 'string') return option
+              return option.displayName || option.username
+            }}
+            inputValue={searchQuery}
+            onInputChange={(event, newInputValue) => {
+              setSearchQuery(newInputValue)
+            }}
+            onChange={(event, value) => {
+              if (value && typeof value === 'object') {
+                handlePlayerSelect(value)
+              }
+            }}
+            loading={searchLoading}
+            noOptionsText={searchQuery.length < 2 ? "Type at least 2 characters" : "No players found"}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                variant="outlined"
+                placeholder="Search for a player..."
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />,
+                  endAdornment: (
+                    <>
+                      {searchLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                      {params.InputProps.endAdornment}
+                    </>
+                  ),
+                }}
+              />
+            )}
+            renderOption={(props, option) => (
+              <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1 }}>
+                <Avatar 
+                  src={option.avatarUrl}
+                  sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}
+                >
+                  {option.username[0]?.toUpperCase()}
+                </Avatar>
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="body1">
+                    {option.displayName || option.username}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    @{option.username} • {option.progress.totalItems} items • {option.progress.overall.toFixed(1)}% complete
+                    {option.country && ` • ${option.country}`}
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+            PopperComponent={(props) => <Popper {...props} style={{ zIndex: 1300 }} />}
+          />
         </Box>
       </Box>
 
@@ -259,20 +350,24 @@ export default function HomePage() {
                       }}
                     >
                       <Box display="flex" alignItems="center" gap={2} mr={2}>
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            bgcolor: player.rank <= 3 ? getRankColor(player.rank) : 'grey.600',
+                            color: player.rank <= 3 ? '#000' : '#fff',
+                            fontSize: '0.875rem',
+                            fontWeight: 'bold',
+                            border: player.rank <= 3 ? '2px solid rgba(0,0,0,0.2)' : 'none'
+                          }}
+                        >
+                          {player.rank}
+                        </Avatar>
                         <Avatar 
                           src={player.avatarUrl}
                           sx={{ width: 40, height: 40, bgcolor: 'primary.main' }}
                         >
                           {player.username[0]?.toUpperCase()}
-                        </Avatar>
-                        <Avatar sx={{ 
-                          bgcolor: 'primary.main', 
-                          color: 'primary.contrastText',
-                          width: 28,
-                          height: 28,
-                          fontSize: '0.75rem'
-                        }}>
-                          #{player.rank}
                         </Avatar>
                       </Box>
                       <ListItemText

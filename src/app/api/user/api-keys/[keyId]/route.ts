@@ -45,13 +45,29 @@ export async function DELETE(
       )
     }
 
-    // Delete the API key
-    await prisma.apiKey.delete({
-      where: { id: keyId }
+    // Delete the API key and clear all grail progress in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Delete the API key
+      await tx.apiKey.delete({
+        where: { id: keyId }
+      })
+
+      // Clear all user progress (same as clear-progress endpoint)
+      await tx.userAchievement.deleteMany({
+        where: { userId: user.id }
+      })
+
+      await tx.userStatistics.deleteMany({
+        where: { userId: user.id }
+      })
+
+      await tx.grailProgress.deleteMany({
+        where: { userId: user.id }
+      })
     })
 
     return NextResponse.json(
-      { message: 'API key deleted successfully' },
+      { message: 'API key deleted and grail progress cleared successfully' },
       { status: 200 }
     )
 

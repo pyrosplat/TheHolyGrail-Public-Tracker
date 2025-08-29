@@ -41,6 +41,20 @@ export async function POST(request: NextRequest) {
 
     const syncData: SyncData = await request.json()
 
+    console.log(`DEBUG: Sync data received for user ${user.username}:`, {
+      grailType: syncData.grailType,
+      gameMode: syncData.gameMode,
+      includeRunes: syncData.includeRunes,
+      includeRunewords: syncData.includeRunewords,
+      itemsCount: Object.keys(syncData.items || {}).length,
+      ethItemsCount: Object.keys(syncData.ethItems || {}).length,
+      detailedStats: syncData.detailedStats ? {
+        ethArmor: syncData.detailedStats.ethArmor,
+        ethWeapons: syncData.detailedStats.ethWeapons,
+        ethOther: syncData.detailedStats.ethOther
+      } : 'No detailed stats'
+    })
+
     // Validate required fields
     if (!syncData.items || !syncData.ethItems) {
       return NextResponse.json(
@@ -99,6 +113,14 @@ export async function POST(request: NextRequest) {
       : overallCompletion
     const runeCompletion = detailedStats?.runes.percent || (totalRunes > 0 && syncData.includeRunes ? (totalRunes / 33) * 100 : 0)
     const runewordCompletion = detailedStats?.runewords.percent || (totalRunewords > 0 && syncData.includeRunewords ? (totalRunewords / 50) * 100 : 0)
+
+    console.log(`DEBUG: About to save to database for user ${user.username}:`, {
+      grailType: syncData.grailType,
+      ethArmorOwned: detailedStats?.ethArmor.owned || 0,
+      ethArmorExists: detailedStats?.ethArmor.exists || 0,
+      ethWeaponsOwned: detailedStats?.ethWeapons.owned || 0,
+      ethWeaponsExists: detailedStats?.ethWeapons.exists || 0,
+    })
 
     // Update grail progress
     const updatedProgress = await prisma.grailProgress.upsert({
@@ -175,6 +197,14 @@ export async function POST(request: NextRequest) {
         runewordCompletion,
         overallCompletion,
       },
+    })
+
+    console.log(`DEBUG: Database updated successfully for user ${user.username}:`, {
+      grailType: updatedProgress.grailType,
+      ethArmorOwned: updatedProgress.ethArmorOwned,
+      ethArmorExists: updatedProgress.ethArmorExists,
+      ethWeaponsOwned: updatedProgress.ethWeaponsOwned,
+      ethWeaponsExists: updatedProgress.ethWeaponsExists,
     })
 
     // Update user's last sync time

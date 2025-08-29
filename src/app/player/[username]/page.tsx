@@ -199,7 +199,7 @@ export default function PlayerProfilePage() {
               <Box display="flex" gap={2} flexWrap="wrap">
                 <Chip
                   icon={<CheckIcon />}
-                  label={`${grailProgress.overallCompletion.toFixed(1)}% Complete`}
+                  label={`${grailProgress?.overallCompletion?.toFixed(1) || '0.0'}% Complete`}
                   color="primary"
                 />
                 <Chip
@@ -326,8 +326,8 @@ export default function PlayerProfilePage() {
               <Box display="flex" justifyContent="center" mb={4}>
                 <Box width={220} height={220} position="relative" display="flex" alignItems="center" justifyContent="center">
                   <CircularProgressbar
-                    value={grailProgress.overallCompletion}
-                    text={`${grailProgress.overallCompletion.toFixed(1)}%`}
+                    value={grailProgress?.overallCompletion || 0}
+                    text={`${grailProgress?.overallCompletion?.toFixed(1) || '0.0'}%`}
                     styles={buildStyles({
                       pathColor: mode === 'dark' ? '#CC5F43' : '#000000',
                       textColor: mode === 'dark' ? '#ffffff' : '#000000',
@@ -348,7 +348,7 @@ export default function PlayerProfilePage() {
                     <Box display="flex" alignItems="center" gap={2}>
                       <LinearProgress
                         variant="determinate"
-                        value={grailProgress.normalCompletion}
+                        value={grailProgress?.normalCompletion || 0}
                         sx={{ 
                           flex: 1, 
                           height: 8, 
@@ -359,11 +359,11 @@ export default function PlayerProfilePage() {
                         }}
                       />
                       <Typography variant="body2" color="text.secondary" minWidth="50px">
-                        {grailProgress.normalCompletion.toFixed(1)}%
+                        {grailProgress?.normalCompletion?.toFixed(1) || '0.0'}%
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary" mt={1}>
-                      {grailProgress.totalItems} items found
+                      {grailProgress?.totalItems || 0} items found
                     </Typography>
                   </Box>
                 </Grid>
@@ -376,7 +376,7 @@ export default function PlayerProfilePage() {
                     <Box display="flex" alignItems="center" gap={2}>
                       <LinearProgress
                         variant="determinate"
-                        value={grailProgress.etherealCompletion}
+                        value={grailProgress?.etherealCompletion || 0}
                         sx={{ 
                           flex: 1, 
                           height: 8, 
@@ -387,16 +387,16 @@ export default function PlayerProfilePage() {
                         }}
                       />
                       <Typography variant="body2" color="text.secondary" minWidth="50px">
-                        {grailProgress.etherealCompletion.toFixed(1)}%
+                        {grailProgress?.etherealCompletion?.toFixed(1) || '0.0'}%
                       </Typography>
                     </Box>
                     <Typography variant="body2" color="text.secondary" mt={1}>
-                      {grailProgress.totalEthItems} eth items found
+                      {grailProgress?.totalEthItems || 0} eth items found
                     </Typography>
                   </Box>
                 </Grid>
 
-                {grailProgress.includeRunes && (
+                {grailProgress?.includeRunes && (
                   <Grid item xs={12} sm={6}>
                     <Box>
                       <Typography variant="h6" gutterBottom>
@@ -405,7 +405,7 @@ export default function PlayerProfilePage() {
                       <Box display="flex" alignItems="center" gap={2}>
                         <LinearProgress
                           variant="determinate"
-                          value={grailProgress.runeCompletion}
+                          value={grailProgress?.runeCompletion || 0}
                           sx={{ 
                             flex: 1, 
                             height: 8, 
@@ -416,17 +416,17 @@ export default function PlayerProfilePage() {
                           }}
                         />
                         <Typography variant="body2" color="text.secondary" minWidth="50px">
-                          {grailProgress.runeCompletion.toFixed(1)}%
+                          {grailProgress?.runeCompletion?.toFixed(1) || '0.0'}%
                         </Typography>
                       </Box>
                       <Typography variant="body2" color="text.secondary" mt={1}>
-                        {grailProgress.totalRunes}/33 runes found
+                        {grailProgress?.totalRunes || 0}/33 runes found
                       </Typography>
                     </Box>
                   </Grid>
                 )}
 
-                {grailProgress.includeRunewords && (
+                {grailProgress?.includeRunewords && (
                   <Grid item xs={12} sm={6}>
                     <Box>
                       <Typography variant="h6" gutterBottom>
@@ -435,7 +435,7 @@ export default function PlayerProfilePage() {
                       <Box display="flex" alignItems="center" gap={2}>
                         <LinearProgress
                           variant="determinate"
-                          value={grailProgress.runewordCompletion}
+                          value={grailProgress?.runewordCompletion || 0}
                           sx={{ 
                             flex: 1, 
                             height: 8, 
@@ -446,11 +446,11 @@ export default function PlayerProfilePage() {
                           }}
                         />
                         <Typography variant="body2" color="text.secondary" minWidth="50px">
-                          {grailProgress.runewordCompletion.toFixed(1)}%
+                          {grailProgress?.runewordCompletion?.toFixed(1) || '0.0'}%
                         </Typography>
                       </Box>
                       <Typography variant="body2" color="text.secondary" mt={1}>
-                        {grailProgress.totalRunewords} runewords created
+                        {grailProgress?.totalRunewords || 0} runewords created
                       </Typography>
                     </Box>
                   </Grid>
@@ -502,42 +502,42 @@ export default function PlayerProfilePage() {
                 <ListItem>
                   <ListItemText
                     primary="Items per day"
-                    secondary={statistics.itemsPerDay.toFixed(1)}
+                    secondary={statistics?.itemsPerDay?.toFixed(1) || '0.0'}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Current streak"
-                    secondary={`${statistics.currentStreak} days`}
+                    secondary={`${statistics?.currentStreak || 0} days`}
                   />
                 </ListItem>
                 <ListItem>
                   <ListItemText
                     primary="Longest streak"
-                    secondary={`${statistics.longestStreak} days`}
+                    secondary={`${statistics?.longestStreak || 0} days`}
                   />
                 </ListItem>
-                {statistics.grailStartedAt && (
+                {statistics?.grailStartedAt && (
                   <ListItem>
                     <ListItemText
                       primary="Grail started"
-                      secondary={new Date(statistics.grailStartedAt).toLocaleDateString()}
+                      secondary={new Date(statistics.grailStartedAt!).toLocaleDateString()}
                     />
                   </ListItem>
                 )}
-                {statistics.firstItemAt && (
+                {statistics?.firstItemAt && (
                   <ListItem>
                     <ListItemText
                       primary="First item found"
-                      secondary={new Date(statistics.firstItemAt).toLocaleDateString()}
+                      secondary={new Date(statistics.firstItemAt!).toLocaleDateString()}
                     />
                   </ListItem>
                 )}
-                {statistics.lastItemAt && (
+                {statistics?.lastItemAt && (
                   <ListItem>
                     <ListItemText
                       primary="Last item found"
-                      secondary={new Date(statistics.lastItemAt).toLocaleDateString()}
+                      secondary={new Date(statistics.lastItemAt!).toLocaleDateString()}
                     />
                   </ListItem>
                 )}

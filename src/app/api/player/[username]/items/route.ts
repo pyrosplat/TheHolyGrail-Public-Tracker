@@ -40,11 +40,62 @@ export async function GET(
       }
     })
 
-    if (!user || !user.grailProgress) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Player not found or has no grail data' },
+        { error: 'Player not found' },
         { status: 404 }
       )
+    }
+
+    // If no grail progress, return default categories with 0 owned items to enable missing items display
+    if (!user.grailProgress) {
+      // Use actual item counts from the mappings
+      const armorCount = 125
+      const weaponsCount = 199  
+      const otherCount = 24
+      const setsCount = 105
+      const runesCount = 33
+      const runewordsCount = 93
+
+      // For default (no grail progress), show all possible sections so users can see options
+      // But we'll default to 'Each' type to show ethereal sections
+      const defaultGrailType = 'Each'
+      
+      const defaultCategories: CategorySummary[] = [
+        { name: 'Unique Armor', owned: 0, exists: armorCount, percentage: 0 },
+        { name: 'Unique Weapons', owned: 0, exists: weaponsCount, percentage: 0 },
+        { name: 'Unique Other', owned: 0, exists: otherCount, percentage: 0 },
+        { name: 'Sets', owned: 0, exists: setsCount, percentage: 0 },
+        { name: 'Ethereal Unique Armor', owned: 0, exists: armorCount, percentage: 0 },
+        { name: 'Ethereal Unique Weapons', owned: 0, exists: weaponsCount, percentage: 0 },
+        // Note: No Ethereal Unique Other - rings, amulets, charms cannot be ethereal
+        { name: 'Runes', owned: 0, exists: runesCount, percentage: 0 },
+        { name: 'Runewords', owned: 0, exists: runewordsCount, percentage: 0 }
+      ]
+
+      const totalItems = armorCount + weaponsCount + otherCount + setsCount + armorCount + weaponsCount + runesCount + runewordsCount // armor+weapons have ethereal versions, other+sets do not
+
+      const emptyResponse: ItemsResponse = {
+        categories: defaultCategories,
+        totalOwned: 0,
+        totalExists: totalItems,
+        overallPercentage: 0,
+        grailType: defaultGrailType,
+        includeRunes: true,
+        includeRunewords: true,
+        rawItems: {
+          items: {},
+          ethItems: {},
+          runes: {},
+          runewords: {}
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: emptyResponse,
+        grailProgress: null
+      })
     }
 
     const grailProgress = user.grailProgress
@@ -95,35 +146,37 @@ export async function GET(
 
     // Add ethereal categories if applicable
     const grailType = grailProgress.grailType
-    const showEtherealSeparately = grailType === 'Ethereal' || grailType === 'Each'
+    const showEtherealSeparately = grailType?.toLowerCase() === 'ethereal' || grailType?.toLowerCase() === 'each'
+    
+    console.log(`DEBUG: Items API for ${username}:`, {
+      grailType,
+      showEtherealSeparately,
+      ethArmorExists: grailProgress.ethArmorExists,
+      ethWeaponsExists: grailProgress.ethWeaponsExists,
+      hasGrailProgress: !!grailProgress
+    })
     
     if (showEtherealSeparately) {
-      if (grailProgress.ethArmorExists > 0) {
-        categories.push({
-          name: 'Ethereal Unique Armor',
-          owned: grailProgress.ethArmorOwned,
-          exists: grailProgress.ethArmorExists,
-          percentage: grailProgress.ethArmorExists > 0 ? (grailProgress.ethArmorOwned / grailProgress.ethArmorExists) * 100 : 0
-        })
-      }
+      // For grail type "Each", always use the full possible counts
+      // For grail type "Ethereal", use the actual counts from progress (may be subset)
+      const ethArmorExists = (grailType?.toLowerCase() === 'each') ? 125 : (grailProgress.ethArmorExists || 125)
+      const ethWeaponsExists = (grailType?.toLowerCase() === 'each') ? 199 : (grailProgress.ethWeaponsExists || 199)
+      
+      categories.push({
+        name: 'Ethereal Unique Armor',
+        owned: grailProgress.ethArmorOwned || 0,
+        exists: ethArmorExists,
+        percentage: ethArmorExists > 0 ? ((grailProgress.ethArmorOwned || 0) / ethArmorExists) * 100 : 0
+      })
 
-      if (grailProgress.ethWeaponsExists > 0) {
-        categories.push({
-          name: 'Ethereal Unique Weapons',
-          owned: grailProgress.ethWeaponsOwned,
-          exists: grailProgress.ethWeaponsExists,
-          percentage: grailProgress.ethWeaponsExists > 0 ? (grailProgress.ethWeaponsOwned / grailProgress.ethWeaponsExists) * 100 : 0
-        })
-      }
+      categories.push({
+        name: 'Ethereal Unique Weapons',
+        owned: grailProgress.ethWeaponsOwned || 0,
+        exists: ethWeaponsExists,
+        percentage: ethWeaponsExists > 0 ? ((grailProgress.ethWeaponsOwned || 0) / ethWeaponsExists) * 100 : 0
+      })
 
-      if (grailProgress.ethOtherExists > 0) {
-        categories.push({
-          name: 'Ethereal Unique Other',
-          owned: grailProgress.ethOtherOwned,
-          exists: grailProgress.ethOtherExists,
-          percentage: grailProgress.ethOtherExists > 0 ? (grailProgress.ethOtherOwned / grailProgress.ethOtherExists) * 100 : 0
-        })
-      }
+      // Note: Ethereal Unique Other removed - rings, amulets, charms cannot be ethereal
     }
 
     // Add runes if enabled
@@ -154,6 +207,8 @@ export async function GET(
     const totalExists = categories.reduce((sum, cat) => sum + cat.exists, 0)
     const overallPercentage = totalExists > 0 ? (totalOwned / totalExists) * 100 : 0
 
+    console.log(`DEBUG: Categories being returned for ${username}:`, categories.map(cat => cat.name))
+
     const response: ItemsResponse = {
       categories,
       totalOwned,
@@ -172,7 +227,8 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      data: response
+      data: response,
+      grailProgress: grailProgress
     })
 
   } catch (error) {

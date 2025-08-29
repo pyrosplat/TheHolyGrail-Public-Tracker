@@ -173,7 +173,7 @@ export default function LeaderboardsPage() {
         // For recent, we'll return a timestamp or days since last sync
         return entry.lastSyncAt ? new Date(entry.lastSyncAt).getTime() : 0
       case 'speed':
-        return entry.statistics.itemsPerDay
+        return entry.statistics?.itemsPerDay || 0
       case 'achievements':
         return entry.achievementCount
       default:
@@ -192,7 +192,7 @@ export default function LeaderboardsPage() {
         if (daysDiff === 1) return 'Yesterday' 
         return `${daysDiff} days ago`
       case 'speed':
-        return `${entry.statistics.itemsPerDay.toFixed(1)} items/day`
+        return `${entry.statistics?.itemsPerDay?.toFixed(1) || '0.0'} items/day`
       case 'achievements':
         return `${entry.achievementCount} achievements`
       default:

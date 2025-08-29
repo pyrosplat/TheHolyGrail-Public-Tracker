@@ -65,14 +65,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already has 10 API keys (reasonable limit)
+    // Check if user already has an API key (only allow one)
     const existingKeys = await prisma.apiKey.count({
       where: { userId: user.id }
     })
 
-    if (existingKeys >= 10) {
+    if (existingKeys >= 1) {
       return NextResponse.json(
-        { error: 'Maximum of 10 API keys allowed per user' },
+        { error: 'Only one API key is allowed per user. Delete the existing key to create a new one.' },
         { status: 400 }
       )
     }

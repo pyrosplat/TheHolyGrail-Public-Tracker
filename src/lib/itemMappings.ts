@@ -80,12 +80,18 @@ export const itemMappings: Record<string, ItemInfo> = {
   
   // HELMS - Elite
   'andarielsvisage': { name: "Andariel's Visage", category: 'armor', subCategory: 'Helms', tier: 'elite' },
+  'arreatsface': { name: "Arreat's Face", category: 'other', subCategory: 'Class Helms', tier: 'elite' },
   'crownofages': { name: 'Crown of Ages', category: 'armor', subCategory: 'Helms', tier: 'elite' },
+  'demonhornsedge': { name: "Demonhorn's Edge", category: 'other', subCategory: 'Class Helms', tier: 'elite' },
   'giantskull': { name: 'Giant Skull', category: 'armor', subCategory: 'Helms', tier: 'elite' },
+  'halaberdreign': { name: "Halaberd's Reign", category: 'other', subCategory: 'Class Helms', tier: 'elite' },
   'harlequincrest': { name: 'Harlequin Crest', category: 'armor', subCategory: 'Helms', tier: 'elite' },
   'nightwingsveil': { name: "Nightwing's Veil", category: 'armor', subCategory: 'Helms', tier: 'elite' },
+  'ravenlore': { name: 'Ravenlore', category: 'other', subCategory: 'Class Helms', tier: 'elite' },
+  'spiritkeeper': { name: 'Spirit Keeper', category: 'other', subCategory: 'Class Helms', tier: 'elite' },
   'steelshade': { name: 'Steel Shade', category: 'armor', subCategory: 'Helms', tier: 'elite' },
   'veilofsteel': { name: 'Veil of Steel', category: 'armor', subCategory: 'Helms', tier: 'elite' },
+  'wolfhowl': { name: 'Wolfhowl', category: 'other', subCategory: 'Class Helms', tier: 'elite' },
   
   // CIRCLETS - Elite
   'kirasguardian': { name: "Kira's Guardian", category: 'armor', subCategory: 'Circlets', tier: 'elite' },
@@ -169,15 +175,20 @@ export const itemMappings: Record<string, ItemInfo> = {
   'radamentssphere': { name: "Radament's Sphere", category: 'armor', subCategory: 'Shields', tier: 'exceptional' },
   
   // SHIELDS - Elite
+  'almanega': { name: 'Alma Negra', category: 'other', subCategory: 'Class Shields', tier: 'elite' },
   'blackoakshield': { name: 'Blackoak Shield', category: 'armor', subCategory: 'Shields', tier: 'elite' },
-  'stormshield': { name: 'Stormshield', category: 'armor', subCategory: 'Shields', tier: 'elite' },
+  'boneflame': { name: 'Boneflame', category: 'other', subCategory: 'Class Shields', tier: 'elite' },
+  'darkforcespawn': { name: 'Darkforce Spawn', category: 'other', subCategory: 'Class Shields', tier: 'elite' },
+  'dragonscale': { name: 'Dragonscale', category: 'other', subCategory: 'Class Shields', tier: 'elite' },
   'headhuntersglory': { name: "Head Hunter's Glory", category: 'armor', subCategory: 'Shields', tier: 'elite' },
+  'homunculus': { name: 'Homunculus', category: 'other', subCategory: 'Class Shields', tier: 'elite' },
   'medusasgaze': { name: "Medusa's Gaze", category: 'armor', subCategory: 'Shields', tier: 'elite' },
   'spikethorn': { name: 'Spike Thorn', category: 'armor', subCategory: 'Shields', tier: 'elite' },
   'spiritward': { name: 'Spirit Ward', category: 'armor', subCategory: 'Shields', tier: 'elite' },
+  'stoneraven': { name: 'Stoneraven', category: 'other', subCategory: 'Shields', tier: 'elite' },
+  'stormshield': { name: 'Stormshield', category: 'armor', subCategory: 'Shields', tier: 'elite' },
   
   // PALADIN SHIELDS - Elite
-  'credendum': { name: 'Credendum', category: 'armor', subCategory: 'Paladin Shields', tier: 'elite' },
   
   // === UNIQUE WEAPONS ===
   
@@ -234,8 +245,12 @@ export const itemMappings: Record<string, ItemInfo> = {
   'stormspike': { name: 'Stormspike', category: 'weapons', subCategory: 'Dagger', tier: 'exceptional' },
   
   // DAGGERS - Elite
+  'bartucscutthroat': { name: "Bartuc's Cut-Throat", category: 'other', subCategory: 'Claws', tier: 'elite' },
+  'bloodmoon': { name: 'Bloodmoon', category: 'weapons', subCategory: 'Dagger', tier: 'elite' },
+  'firelizardstalons': { name: "Firelizard's Talons", category: 'other', subCategory: 'Claws', tier: 'elite' },
   'fleshripper': { name: 'Fleshripper', category: 'weapons', subCategory: 'Dagger', tier: 'elite' },
   'ghostflame': { name: 'Ghostflame', category: 'weapons', subCategory: 'Dagger', tier: 'elite' },
+  'shadowkiller': { name: 'Shadow Killer', category: 'other', subCategory: 'Claws', tier: 'elite' },
   'wizardspike': { name: 'Wizardspike', category: 'weapons', subCategory: 'Dagger', tier: 'elite' },
   
   // SWORDS (1-H) - Normal
@@ -407,6 +422,12 @@ export const itemMappings: Record<string, ItemInfo> = {
   'steelpillar': { name: 'Steel Pillar', category: 'weapons', subCategory: 'Spear', tier: 'elite' },
   'viperfork': { name: 'Viperfork', category: 'weapons', subCategory: 'Spear', tier: 'elite' },
   
+  // JAVELINS - Elite (Amazon-specific throwing weapons) - Moved to Other category per user request
+  'bloodravenscharge': { name: "Blood Raven's Charge", category: 'other', subCategory: 'Javelins', tier: 'elite' },
+  'lycandersaim': { name: "Lycander's Aim", category: 'other', subCategory: 'Javelins', tier: 'elite' },
+  'lycandersflank': { name: "Lycander's Flank", category: 'other', subCategory: 'Javelins', tier: 'elite' },
+  'titansrevenge': { name: "Titan's Revenge", category: 'other', subCategory: 'Javelins', tier: 'elite' },
+  
   // SCEPTERS - Normal
   'knellstriker': { name: 'Knell Striker', category: 'weapons', subCategory: 'Scepter', tier: 'normal' },
   'rusthandle': { name: 'Rusthandle', category: 'weapons', subCategory: 'Scepter', tier: 'normal' },
@@ -439,6 +460,11 @@ export const itemMappings: Record<string, ItemInfo> = {
   // STAVES - Elite
   'mangsongslesson': { name: "Mang Song's Lesson", category: 'weapons', subCategory: 'Staff', tier: 'elite' },
   'ondalswisdom': { name: "Ondal's Wisdom", category: 'weapons', subCategory: 'Staff', tier: 'elite' },
+  
+  // ORBS - Elite (Sorceress-specific weapons) - Moved to Other category per user request
+  'deathsfathom': { name: "Death's Fathom", category: 'other', subCategory: 'Class Orbs', tier: 'elite' },
+  'eschutastemper': { name: "Eschuta's Temper", category: 'other', subCategory: 'Class Orbs', tier: 'elite' },
+  'theoculus': { name: 'The Oculus', category: 'other', subCategory: 'Class Orbs', tier: 'elite' },
   
   // WANDS - Normal
   'torchofiro': { name: 'Torch of Iro', category: 'weapons', subCategory: 'Wand', tier: 'normal' },
@@ -497,6 +523,16 @@ export const itemMappings: Record<string, ItemInfo> = {
   'annihilus': { name: 'Annihilus', category: 'other', subCategory: 'Charms', tier: 'normal' },
   'gheedsfortune': { name: "Gheed's Fortune", category: 'other', subCategory: 'Charms', tier: 'normal' },
   'hellfiretorch': { name: 'Hellfire Torch', category: 'other', subCategory: 'Charms', tier: 'normal' },
+  
+  // RAINBOW FACETS (8 total - 2 for each element)
+  'rainbowfacetcoldlevelup': { name: 'Rainbow Facet (Cold - Level Up)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetcolddeath': { name: 'Rainbow Facet (Cold - Death)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetfirelevelup': { name: 'Rainbow Facet (Fire - Level Up)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetfiredeath': { name: 'Rainbow Facet (Fire - Death)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetlightninglevelup': { name: 'Rainbow Facet (Lightning - Level Up)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetlightningdeath': { name: 'Rainbow Facet (Lightning - Death)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetpoisonlevelup': { name: 'Rainbow Facet (Poison - Level Up)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
+  'rainbowfacetpoisondeath': { name: 'Rainbow Facet (Poison - Death)', category: 'other', subCategory: 'Jewels', tier: 'normal' },
 }
 
 // Item code to internal key mapping - maps save file item codes to our clean keys
@@ -558,12 +594,18 @@ export const itemCodeToKey: Record<string, string> = {
   'Crown of Thieves': 'crownofthieves',
   'Blackhorn\'s Face': 'blackhornsface',
   'Andariel\'s Visage': 'andarielsvisage',
+  'Arreat\'s Face': 'arreatsface',
   'Crown of Ages': 'crownofages',
+  'Demonhorn\'s Edge': 'demonhornsedge',
   'Giant Skull': 'giantskull',
+  'Halaberd\'s Reign': 'halaberdreign',
   'Harlequin Crest': 'harlequincrest',
   'Nightwing\'s Veil': 'nightwingsveil',
+  'Ravenlore': 'ravenlore',
+  'Spirit Keeper': 'spiritkeeper',
   'Steel Shade': 'steelshade',
   'Veil of Steel': 'veilofsteel',
+  'Wolfhowl': 'wolfhowl',
   
   // CIRCLETS
   'Kira\'s Guardian': 'kirasguardian',
@@ -631,15 +673,20 @@ export const itemCodeToKey: Record<string, string> = {
   'Lidless Wall': 'lidlesswall',
   'Gerke\'s Sanctuary': 'gerkessanctuary',
   'Radament\'s Sphere': 'radamentssphere',
+  'Alma Negra': 'almanega',
   'Blackoak Shield': 'blackoakshield',
-  'Stormshield': 'stormshield',
+  'Boneflame': 'boneflame',
+  'Darkforce Spawn': 'darkforcespawn',
+  'Dragonscale': 'dragonscale',
   'Head Hunter\'s Glory': 'headhuntersglory',
+  'Homunculus': 'homunculus',
   'Medusa\'s Gaze': 'medusasgaze',
   'Spike Thorn': 'spikethorn',
   'Spirit Ward': 'spiritward',
+  'Stoneraven': 'stoneraven',
+  'Stormshield': 'stormshield',
   
   // PALADIN SHIELDS
-  'Credendum': 'credendum',
   
   // WEAPONS - AXES (1-H)
   'The Gnasher': 'thegnasher',
@@ -682,8 +729,12 @@ export const itemCodeToKey: Record<string, string> = {
   'Heart Carver': 'heartcarver',
   'Blackbog\'s Sharp': 'blackbogssharp',
   'Stormspike': 'stormspike',
+  'Bartuc\'s Cut-Throat': 'bartucscutthroat',
+  'Bloodmoon': 'bloodmoon',
+  'Firelizard\'s Talons': 'firelizardstalons',
   'Fleshripper': 'fleshripper',
   'Ghostflame': 'ghostflame',
+  'Shadow Killer': 'shadowkiller',
   'Wizardspike': 'wizardspike',
   
   // WEAPONS - SWORDS (1-H)
@@ -822,6 +873,12 @@ export const itemCodeToKey: Record<string, string> = {
   'Steel Pillar': 'steelpillar',
   'Viperfork': 'viperfork',
   
+  // JAVELINS
+  'Blood Raven\'s Charge': 'bloodravenscharge',
+  'Lycander\'s Aim': 'lycandersaim',
+  'Lycander\'s Flank': 'lycandersflank',
+  'Titan\'s Revenge': 'titansrevenge',
+  
   // WEAPONS - SCEPTERS
   'Knell Striker': 'knellstriker',
   'Rusthandle': 'rusthandle',
@@ -846,6 +903,11 @@ export const itemCodeToKey: Record<string, string> = {
   'Skull Collector': 'skullcollector',
   'Mang Song\'s Lesson': 'mangsongslesson',
   'Ondal\'s Wisdom': 'ondalswisdom',
+  
+  // ORBS
+  'Death\'s Fathom': 'deathsfathom',
+  'Eschuta\'s Temper': 'eschutastemper',
+  'The Oculus': 'theoculus',
   
   // WEAPONS - WANDS
   'Torch of Iro': 'torchofiro',
@@ -898,6 +960,16 @@ export const itemCodeToKey: Record<string, string> = {
   'Annihilus': 'annihilus',
   'Gheed\'s Fortune': 'gheedsfortune',
   'Hellfire Torch': 'hellfiretorch',
+  
+  // RAINBOW FACETS
+  'Rainbow Facet (Cold - Level Up)': 'rainbowfacetcoldlevelup',
+  'Rainbow Facet (Cold - Death)': 'rainbowfacetcolddeath',
+  'Rainbow Facet (Fire - Level Up)': 'rainbowfacetfirelevelup',
+  'Rainbow Facet (Fire - Death)': 'rainbowfacetfiredeath',
+  'Rainbow Facet (Lightning - Level Up)': 'rainbowfacetlightninglevelup',
+  'Rainbow Facet (Lightning - Death)': 'rainbowfacetlightningdeath',
+  'Rainbow Facet (Poison - Level Up)': 'rainbowfacetpoisonlevelup',
+  'Rainbow Facet (Poison - Death)': 'rainbowfacetpoisondeath',
 }
 
 // Helper function to get item info by key
@@ -936,7 +1008,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? `eth${itemInfo.category}` : itemInfo.category,
       subCategory: itemInfo.subCategory,
       tier: itemInfo.tier,
-      displayName: displayName
+      displayName: isEthereal ? `${displayName} (Ethereal)` : displayName
     }
   }
   
@@ -956,7 +1028,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Helms',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -967,7 +1039,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Chest',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -977,7 +1049,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Gloves',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -987,7 +1059,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Belts',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -997,7 +1069,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Boots',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1006,7 +1078,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'etharmor' : 'armor',
       subCategory: 'Shields',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1021,7 +1093,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: 'Swords',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1030,7 +1102,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: 'Axes',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1040,7 +1112,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: 'Maces',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1049,7 +1121,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: keyLower.includes('crossbow') ? 'Crossbows' : 'Bows',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1059,7 +1131,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: 'Spears',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1068,7 +1140,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: keyLower.includes('wand') ? 'Wands' : keyLower.includes('orb') ? 'Orbs' : 'Staves',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1077,7 +1149,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethweapons' : 'weapons',
       subCategory: 'Daggers',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1087,7 +1159,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethother' : 'other',
       subCategory: 'Rings',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1096,7 +1168,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethother' : 'other',
       subCategory: 'Amulets',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1105,7 +1177,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
       category: isEthereal ? 'ethother' : 'other',
       subCategory: 'Charms',
       tier: 'normal',
-      displayName: cleanedName
+      displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
     }
   }
   
@@ -1114,7 +1186,7 @@ export function categorizeItem(key: string, isEthereal: boolean = false): {
     category: isEthereal ? 'ethother' : 'other',
     subCategory: 'Unknown',
     tier: 'normal',
-    displayName: cleanedName
+    displayName: isEthereal ? `${cleanedName} (Ethereal)` : cleanedName
   }
 }
 

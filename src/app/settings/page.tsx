@@ -27,6 +27,9 @@ import {
   FormControlLabel,
   Switch,
   IconButton,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material'
 import {
   Delete as DeleteIcon,
@@ -37,6 +40,7 @@ import {
   Person as PersonIcon,
   PhotoCamera as PhotoCameraIcon,
   CloudUpload as UploadIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material'
 import { useTheme } from '@/contexts/ThemeContext'
 
@@ -85,10 +89,18 @@ export default function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
+  
+  // Danger zone accordion state
+  const [dangerZoneExpanded, setDangerZoneExpanded] = useState(false)
 
   useEffect(() => {
+    console.log('Settings page: session state changed', { session: session?.user })
     if (session?.user?.id) {
+      console.log('Loading profile for user:', session.user.id)
       loadProfile()
+    } else if (session === null) {
+      console.log('No session - user not authenticated')
+      setError('Please log in to view settings')
     }
   }, [session])
 
@@ -100,18 +112,24 @@ export default function SettingsPage() {
   const loadProfile = async () => {
     try {
       setProfileLoading(true)
+      setError('') // Clear any previous errors
+      
       const response = await fetch('/api/user/profile')
       const data = await response.json()
       
-      if (data.success) {
+      console.log('Profile API response:', { status: response.status, data })
+      
+      if (response.ok && data.success) {
         setProfile(data.data)
         setProfileForm(data.data)
       } else {
-        setError('Failed to load profile')
+        const errorMessage = data.error || `HTTP ${response.status}: Failed to load profile`
+        console.error('Profile API error:', errorMessage)
+        setError(errorMessage)
       }
     } catch (error) {
-      console.error('Load profile error:', error)
-      setError('Failed to load profile')
+      console.error('Load profile network error:', error)
+      setError(`Network error: ${error instanceof Error ? error.message : 'Failed to load profile'}`)
     } finally {
       setProfileLoading(false)
     }
@@ -705,12 +723,23 @@ export default function SettingsPage() {
       </Card>
 
       {/* Danger Zone */}
-      <Card sx={{ mb: 4, border: '2px solid', borderColor: 'error.main' }}>
-        <CardContent>
-          <Typography variant="h5" gutterBottom color="error.main">
+      <Accordion 
+        expanded={dangerZoneExpanded} 
+        onChange={(event, isExpanded) => setDangerZoneExpanded(isExpanded)}
+        sx={{ mb: 4, border: '2px solid', borderColor: 'error.main' }}
+      >
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          aria-controls="danger-zone-content"
+          id="danger-zone-header"
+          sx={{ backgroundColor: 'error.main', color: 'error.contrastText' }}
+        >
+          <Typography variant="h5">
             <WarningIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
             Danger Zone
           </Typography>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 3 }}>
           
           {/* Clear Progress Section */}
           <Box mb={4}>
@@ -723,7 +752,7 @@ export default function SettingsPage() {
             <Typography variant="body2" color="text.secondary" paragraph>
               This will clear:
             </Typography>
-            <Box component="ul" sx={{ mt: 1, mb: 3 }}>
+            <Box component="ul" sx={{ mt: 1, mb: 3, pl: 3, listStyleType: 'disc' }}>
               <li>All grail progress data</li>
               <li>Statistics and achievements</li>
               <li>Item tracking history</li>
@@ -756,7 +785,7 @@ export default function SettingsPage() {
             <Typography variant="body2" color="text.secondary" paragraph>
               This will delete:
             </Typography>
-            <Box component="ul" sx={{ mt: 1, mb: 3 }}>
+            <Box component="ul" sx={{ mt: 1, mb: 3, pl: 3, listStyleType: 'disc' }}>
               <li>Your user profile</li>
               <li>All grail progress data</li>
               <li>Statistics and achievements</li>
@@ -773,8 +802,8 @@ export default function SettingsPage() {
               Delete Account
             </Button>
           </Box>
-        </CardContent>
-      </Card>
+        </AccordionDetails>
+      </Accordion>
 
       {/* Delete Confirmation Dialog */}
       <Dialog 
